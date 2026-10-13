@@ -19,6 +19,12 @@ import urllib.parse
 from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+try:  # Windows-only; imported at top level so PyInstaller bundles the submodule.
+    import ctypes
+    import ctypes.wintypes  # noqa: F401
+except Exception:
+    pass
+
 DEFAULTS = {
     "bind": "0.0.0.0",
     "port": 8765,
@@ -603,6 +609,23 @@ def _metrics_linux(snapshot, fs, prev_cpu, prev_net, dt, mounts):
     return cur_cpu, cur_net
 
 
+def windows_disks():
+    if os.name != "nt":
+        return []
+    disks = []
+    for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+        root = "%s:\\" % letter
+        try:
+            usage = shutil.disk_usage(root)
+        except OSError:
+            continue
+        total = usage.total
+        used = usage.used
+        disks.append({"mount": root, "total": total, "used": used,
+                      "pct": round(used / total * 100, 1) if total else 0.0})
+    return disks
+
+
 def _metrics_windows(snapshot, prev_cpu):
     snapshot["os"] = "Windows %s" % (platform.release() or "")
     cur_cpu = windows_cpu_times()
@@ -624,7 +647,7 @@ def _metrics_windows(snapshot, prev_cpu):
         snapshot["uptime_s"] = int(time.time() - boot)
     else:
         snapshot["uptime_s"] = 0
-    snapshot["disks"] = []
+    snapshot["disks"] = windows_disks()
     snapshot["network"] = []
     try:
         procs = windows_top_processes(mem.get("total", 0))
