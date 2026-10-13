@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1600">
+<title>Servex — Android UI Design</title>
+<style>
+  :root{
+    --bg:#0F1115;
+    --surface:#1A1D23;
+    --surface-2:#232732;
+    --line:#2A2E38;
+    --on:#E6E9EF;
+    --on-2:#8A9099;
+    --primary:#4C8DFF;
+    --success:#3DDC84;
+    --warning:#FFC93C;
+    --error:#FF5C5C;
+    --offline:#6B7280;
+    --r-card:14px;
+    --r-btn:11px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(900px 500px at 15% -5%, rgba(76,141,255,.10), transparent 60%),
+      radial-gradient(700px 400px at 95% 8%, rgba(76,141,255,.06), transparent 60%),
+      #06070A;
+    color:var(--on);
+    font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:56px 60px 64px;
+  }
+  .page{width:1600px;margin:0 auto}
+
+  /* ---- header ---- */
+  .hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px}
+  .brand{display:flex;align-items:center;gap:16px}
+  .logo2{width:52px;height:52px;border-radius:15px;background:linear-gradient(160deg,#1E2733,#141821);
+         border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--primary)}
+  .logo2 svg{width:28px;height:28px}
+  .brand h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.02em}
+  .brand .sub{color:var(--on-2);font-size:13.5px;margin-top:4px}
+  .hdr .meta{text-align:right;color:var(--on-2);font-size:12px;line-height:1.7}
+  .hdr .meta b{color:var(--on);font-weight:600}
+
+  /* ---- phones ---- */
+  .grid4{display:flex;gap:30px;align-items:flex-start;justify-content:space-between}
+  .pw{display:flex;flex-direction:column;gap:14px;width:360px}
+  .cap{display:flex;align-items:baseline;gap:9px}
+  .cap .idx{font-size:12px;font-weight:800;color:var(--primary);letter-spacing:.06em}
+  .cap .nm2{font-size:15px;font-weight:700}
+  .cap .note{margin-left:auto;font-size:11.5px;color:var(--on-2)}
+
+  .phone{
+    width:360px;height:748px;border-radius:38px;padding:10px;
+    background:linear-gradient(180deg,#15181E,#0C0E12);
+    border:1px solid #222630;
+    box-shadow:0 26px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .screen{
+    width:100%;height:100%;border-radius:30px;overflow:hidden;position:relative;
+    background:var(--bg);display:flex;flex-direction:column;border:1px solid #10131a;
+  }
+  .notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;background:#04060a;border:1px solid #1b2029}
+
+  /* status bar */
+  .sb{display:flex;align-items:center;justify-content:space-between;padding:12px 20px 6px;font-size:12px;font-weight:600;color:var(--on)}
+  .sb .r{display:flex;align-items:center;gap:6px}
+  .sb svg{width:15px;height:15px}
+
+  /* app bar */
+  .abar{display:flex;align-items:center;gap:10px;padding:8px 14px 12px}
+  .abar .t{font-size:20px;font-weight:700;letter-spacing:-.01em;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .iconbtn{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--on-2)}
+  .iconbtn svg{width:21px;height:21px}
+  .iconbtn.pri{color:var(--primary)}
+
+  .body{flex:1;overflow:hidden;padding:2px 16px 16px}
+  .body.pad0{padding:0}
+  .scrollhint{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:120px;height:4px;border-radius:4px;background:#3a3f4b}
+
+  /* ---- status pills ---- */
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .pill svg{width:14px;height:14px}
+  .p-normal{color:var(--success);background:rgba(61,220,132,.13)}
+  .p-warning{color:var(--warning);background:rgba(255,201,60,.13)}
+  .p-error{color:var(--error);background:rgba(255,92,92,.13)}
+  .p-offline{color:var(--offline);background:rgba(107,114,128,.18)}
+
+  /* ---- overview ---- */
+  .summary{display:flex;gap:8px;margin:2px 0 14px}
+  .spill{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px 8px;text-align:center}
+  .spill .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center;gap:6px}
+  .spill .l{font-size:10px;color:var(--on-2);margin-top:2px;letter-spacing:.02em}
+  .dot{width:8px;height:8px;border-radius:50%}
+
+  .scard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:15px 16px;margin-bottom:12px}
+  .scard .r1{display:flex;align-items:center;gap:10px}
+  .scard .nm{font-size:17px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.01em}
+  .scard .u{font-size:11.5px;color:var(--on-2);margin-top:3px}
+  .scard .spark{width:100%;height:36px;margin-top:12px;display:block}
+
+  .fab{position:absolute;right:18px;bottom:26px;width:54px;height:54px;border-radius:18px;
+       background:var(--primary);color:#07101F;display:flex;align-items:center;justify-content:center;
+       box-shadow:0 12px 26px rgba(76,141,255,.42)}
+  .fab svg{width:26px;height:26px}
+
+  /* ---- detail ---- */
+  .host{font-size:11.5px;color:var(--on-2);margin:0 16px 14px;display:flex;gap:8px;flex-wrap:wrap}
+  .host i{font-style:normal;color:#4a5060}
+  .big3{display:flex;justify-content:space-between;gap:10px}
+  .bm{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:12px 8px;text-align:center}
+  .bm svg{width:18px;height:18px;color:var(--on-2)}
+  .bm .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:6px;letter-spacing:-.02em}
+  .bm .l{font-size:10.5px;color:var(--on-2);letter-spacing:.06em;margin-top:1px}
+  .bm .v.warn{color:var(--warning)}
+
+  .sec2{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--on-2);margin:18px 0 8px}
+  .chart{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 10px 6px;margin-bottom:10px}
+  .chart .ch{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--on-2);margin-bottom:4px}
+  .chart .ch b{color:var(--on);font-weight:600}
+  .chart .now{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--on)}
+  .chart svg{width:100%;height:56px;display:block}
+
+  .drow{margin-top:4px}
+  .drow .dl{display:flex;justify-content:space-between;font-size:12px;color:var(--on-2);margin-bottom:6px}
+  .drow .dl b{color:var(--on);font-weight:600;font-variant-numeric:tabular-nums}
+  .bar{height:9px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px}
+
+  .mrow2{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13.5px;border-bottom:1px solid #1c2029}
+  .mrow2:last-child{border-bottom:0}
+  .mrow2 svg{width:18px;height:18px;color:var(--on-2)}
+  .mrow2 .k{color:var(--on-2)}
+  .mrow2 .v{margin-left:auto;font-variant-numeric:tabular-nums}
+
+  .actions{display:flex;gap:10px;margin-top:16px}
+  .btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:var(--r-btn);font-size:14px;font-weight:700}
+  .btn svg{width:18px;height:18px}
+  .btn.pri{background:var(--primary);color:#07101F;box-shadow:0 8px 18px rgba(76,141,255,.30)}
+  .btn.out{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+  .btn.ghost{background:var(--surface-2);color:var(--on)}
+
+  /* ---- edit ---- */
+  .field2{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:12px}
+  .field2.focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(76,141,255,.14)}
+  .field2 .fl2{font-size:10.5px;color:var(--on-2);letter-spacing:.04em}
+  .field2 .fv2{font-size:14.5px;margin-top:4px;font-variant-numeric:tabular-nums}
+  .field2 .ph{color:#565c69}
+  .ok{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--success);margin:-2px 0 14px}
+  .ok svg{width:14px;height:14px}
+
+  /* ---- settings ---- */
+  .sg{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);overflow:hidden;margin-bottom:16px}
+  .srow3{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #1c2029}
+  .srow3:last-child{border-bottom:0}
+  .srow3 .k{font-size:13.5px}
+  .srow3 .k small{display:block;color:var(--on-2);font-size:11px;margin-top:2px}
+  .srow3 .v{margin-left:auto;font-size:13.5px;color:var(--on-2);font-variant-numeric:tabular-nums}
+  .switch{margin-left:auto;width:44px;height:26px;border-radius:999px;background:var(--primary);position:relative;flex:0 0 auto}
+  .switch::after{content:"";position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:#fff}
+  .abt{color:var(--on-2);font-size:11.5px;line-height:1.7;padding:0 4px}
+
+  /* ---- spec strip ---- */
+  .specbar{margin-top:52px;border-top:1px solid var(--line);padding-top:28px;display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:34px}
+  .sh{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--primary);margin-bottom:14px}
+  .pal{display:flex;flex-wrap:wrap;gap:12px}
+  .sw2{width:88px}
+  .sw2 .c{height:44px;border-radius:9px;border:1px solid rgba(255,255,255,.06)}
+  .sw2 .n{font-size:10.5px;margin-top:6px}
+  .sw2 .h{font-size:10px;color:var(--on-2);font-family:ui-monospace,Consolas,monospace}
+  .specrow{display:flex;align-items:baseline;gap:12px;padding:7px 0;border-bottom:1px dashed #1e222b;font-size:12.5px}
+  .specrow .a{color:var(--on-2);width:110px;flex:0 0 auto}
+  .specrow .b{font-weight:600}
+  .toks3{display:flex;flex-wrap:wrap;gap:9px}
+  .tok3{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:7px 11px;font-size:11.5px;color:var(--on-2)}
+  .tok3 b{color:var(--on)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3L22 20H2L12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17.2v.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-err" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 9l6 6M15 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-off" viewBox="0 0 24 24"><path d="M7 18h9a4 4 0 0 0 .6-7.95A5 5 0 0 0 8 9.2A4 4 0 0 0 7 18Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4l16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><path d="M7 7h10v10H7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-mem" viewBox="0 0 24 24"><path d="M4 6h16v4H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M4 14h16v4H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="i-disk" viewBox="0 0 24 24"><path d="M4 5h16v5H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M4 14h16v5H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 7.5v.01M8 16.5v.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-net" viewBox="0 0 24 24"><path d="M4 9h14M15 6l3 3l-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15H6M9 12l-3 3l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2 6M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-set" viewBox="0 0 24 24"><path d="M12 4l1 2.2l2.4-.6l.6 2.4L18 9l-1 2l1 2l-2 1l-.6 2.4L13 15.8L12 18l-1-2.2l-2.4.6L8 14l-2-1l1-2L6 9l2-1l.6-2.4L11 6.2L12 4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 9.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0-5Z" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-add" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M5 19h3l10-10l-3-3L5 16Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-del" viewBox="0 0 24 24"><path d="M6 7h12M9 7V5h6v2M8 7l1 12h6l1-12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 17h3v4H4ZM10 13h3v8h-3ZM16 9h3v12h-3Z" fill="currentColor"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M4 9a13 13 0 0 1 16 0M7 13a8 8 0 0 1 10 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17.5v.01" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-batt" viewBox="0 0 24 24"><rect x="2" y="7" width="17" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M21 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="4.5" y="9.5" width="10" height="5" rx="1.5" fill="currentColor"/></symbol>
+</defs></svg>
+
+<div class="page">
+  <header class="hdr">
+    <div class="brand">
+      <div class="logo2"><svg><use href="#i-disk"/></svg></div>
+      <div>
+        <h1>Servex</h1>
+        <div class="sub">Personal server monitoring · Android · Dark-first, minimal, technical</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div><b>UI Design — v1.0</b></div>
+      <div>4 screens · 10 color tokens · 14 custom icons</div>
+      <div>GPL-3.0 · min SDK 36</div>
+    </div>
+  </header>
+
+  <div class="grid4">
+
+    <!-- 01 OVERVIEW -->
+    <div class="pw">
+      <div class="cap"><span class="idx">01</span><span class="nm2">Overview</span><span class="note">fleet at a glance</span></div>
+      <div class="phone">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="sb"><span>9:41</span><span class="r"><svg><use href="#i-signal"/></svg><svg><use href="#i-wifi"/></svg><svg><use href="#i-batt"/></svg></span></div>
+          <div class="abar">
+            <div class="t">Servex</div>
+            <div class="iconbtn"><svg><use href="#i-refresh"/></svg></div>
+            <div class="iconbtn"><svg><use href="#i-set"/></svg></div>
+          </div>
+          <div class="body">
+            <div class="summary">
+              <div class="spill"><div class="v"><span class="dot" style="background:#3DDC84"></span>3</div><div class="l">Normal</div></div>
+              <div class="spill"><div class="v"><span class="dot" style="background:#FFC93C"></span>1</div><div class="l">Warning</div></div>
+              <div class="spill"><div class="v"><span class="dot" style="background:#FF5C5C"></span>0</div><div class="l">Error</div></div>
+              <div class="spill"><div class="v"><span class="dot" style="background:#6B7280"></span>1</div><div class="l">Offline</div></div>
+            </div>
+
+            <div class="scard">
+              <div class="r1"><span class="nm">web-01</span><span class="pill p-normal"><svg><use href="#i-check"/></svg>Normal</span></div>
+              <div class="u">10.0.0.5 · Ubuntu 24.04</div>
+              <svg class="spark" viewBox="0 0 320 36" preserveAspectRatio="none">
+                <path d="M0 27 L32 22 L64 25 L96 13 L128 19 L160 9 L192 17 L224 11 L256 21 L288 15 L320 19" fill="none" stroke="#4C8DFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <div class="scard">
+              <div class="r1"><span class="nm">db-01</span><span class="pill p-warning"><svg><use href="#i-warn"/></svg>Warning</span></div>
+              <div class="u">10.0.0.9 · Windows · 78% disk</div>
+              <svg class="spark" viewBox="0 0 320 36" preserveAspectRatio="none">
+                <path d="M0 22 L32 19 L64 24 L96 16 L128 25 L160 13 L192 21 L224 8 L256 17 L288 12 L320 6" fill="none" stroke="#FFC93C" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <div class="scard">
+              <div class="r1"><span class="nm">nas-01</span><span class="pill p-offline"><svg><use href="#i-off"/></svg>Offline</span></div>
+              <div class="u">10.0.0.20 · no response</div>
+              <svg class="spark" viewBox="0 0 320 36" preserveAspectRatio="none">
+                <path d="M0 18 L320 18" fill="none" stroke="#6B7280" stroke-width="1.6" stroke-dasharray="5 5" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="fab"><svg><use href="#i-add"/></svg></div>
+          <div class="scrollhint"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 DETAIL -->
+    <div class="pw">
+      <div class="cap"><span class="idx">02</span><span class="nm2">Server detail</span><span class="note">metrics &amp; history</span></div>
+      <div class="phone">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="sb"><span>9:41</span><span class="r"><svg><use href="#i-signal"/></svg><svg><use href="#i-wifi"/></svg><svg><use href="#i-batt"/></svg></span></div>
+          <div class="abar">
+            <div class="iconbtn"><svg><use href="#i-back"/></svg></div>
+            <div class="t">web-01</div>
+            <span class="pill p-normal"><svg><use href="#i-check"/></svg>Normal</span>
+            <div class="iconbtn"><svg><use href="#i-edit"/></svg></div>
+          </div>
+          <div class="body">
+            <div class="host"><span>10.0.0.5</span><i>·</i><span>Ubuntu 24.04</span><i>·</i><span>up 4d 6h</span></div>
+
+            <div class="big3">
+              <div class="bm"><svg><use href="#i-cpu"/></svg><div class="v">37%</div><div class="l">CPU</div></div>
+              <div class="bm"><svg><use href="#i-mem"/></svg><div class="v">54%</div><div class="l">MEM</div></div>
+              <div class="bm"><svg><use href="#i-disk"/></svg><div class="v warn">78%</div><div class="l">DISK</div></div>
+            </div>
+
+            <div class="sec2">CPU</div>
+            <div class="chart">
+              <div class="ch"><b>CPU load</b><span class="now">37%</span></div>
+              <svg viewBox="0 0 320 56" preserveAspectRatio="none">
+                <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4C8DFF" stop-opacity=".28"/><stop offset="1" stop-color="#4C8DFF" stop-opacity="0"/></linearGradient></defs>
+                <path d="M0 40 L32 34 L64 38 L96 20 L128 30 L160 16 L192 28 L224 18 L256 32 L288 22 L320 28 L320 56 L0 56 Z" fill="url(#gc)"/>
+                <path d="M0 40 L32 34 L64 38 L96 20 L128 30 L160 16 L192 28 L224 18 L256 32 L288 22 L320 28" fill="none" stroke="#4C8DFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="chart">
+              <div class="ch"><b>Memory</b><span class="now">54%</span></div>
+              <svg viewBox="0 0 320 56" preserveAspectRatio="none">
+                <defs><linearGradient id="gm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3DDC84" stop-opacity=".24"/><stop offset="1" stop-color="#3DDC84" stop-opacity="0"/></linearGradient></defs>
+                <path d="M0 30 L32 28 L64 32 L96 26 L128 31 L160 24 L192 29 L224 27 L256 33 L288 28 L320 30 L320 56 L0 56 Z" fill="url(#gm)"/>
+                <path d="M0 30 L32 28 L64 32 L96 26 L128 31 L160 24 L192 29 L224 27 L256 33 L288 28 L320 30" fill="none" stroke="#3DDC84" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="chart">
+              <div class="ch"><b>Network · rx/tx</b><span class="now">1.2 MB/s</span></div>
+              <svg viewBox="0 0 320 56" preserveAspectRatio="none">
+                <defs><linearGradient id="gn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC93C" stop-opacity=".22"/><stop offset="1" stop-color="#FFC93C" stop-opacity="0"/></linearGradient></defs>
+                <path d="M0 44 L32 40 L64 46 L96 34 L128 42 L160 30 L192 40 L224 26 L256 38 L288 32 L320 44 L320 56 L0 56 Z" fill="url(#gn)"/>
+                <path d="M0 44 L32 40 L64 46 L96 34 L128 42 L160 30 L192 40 L224 26 L256 38 L288 32 L320 44" fill="none" stroke="#FFC93C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <div class="sec2">Storage</div>
+            <div class="drow"><div class="dl"><span>/</span><b>39.8%</b></div><div class="bar"><i style="width:39.8%;background:#3DDC84"></i></div></div>
+            <div class="drow" style="margin-top:12px"><div class="dl"><span>/data</span><b>78.2%</b></div><div class="bar"><i style="width:78.2%;background:#FFC93C"></i></div></div>
+
+            <div class="sec2">Network</div>
+            <div class="mrow2"><svg><use href="#i-net"/></svg><span class="k">eth0 rx</span><span class="v">1.2 MB/s</span></div>
+            <div class="mrow2"><svg><use href="#i-net"/></svg><span class="k">eth0 tx</span><span class="v">512 KB/s</span></div>
+            <div class="mrow2"><svg><use href="#i-cpu"/></svg><span class="k">load avg</span><span class="v">1.42 · 1.10 · 0.98</span></div>
+
+            <div class="actions">
+              <div class="btn out"><svg><use href="#i-refresh"/></svg>Restart service</div>
+            </div>
+          </div>
+          <div class="scrollhint"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 EDIT -->
+    <div class="pw">
+      <div class="cap"><span class="idx">03</span><span class="nm2">Add / edit server</span><span class="note">connection &amp; token</span></div>
+      <div class="phone">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="sb"><span>9:41</span><span class="r"><svg><use href="#i-signal"/></svg><svg><use href="#i-wifi"/></svg><svg><use href="#i-batt"/></svg></span></div>
+          <div class="abar">
+            <div class="iconbtn"><svg><use href="#i-back"/></svg></div>
+            <div class="t">Server</div>
+          </div>
+          <div class="body">
+            <div class="field2 focus"><div class="fl2">NAME</div><div class="fv2">web-01</div></div>
+            <div class="field2"><div class="fl2">BASE URL</div><div class="fv2">https://web-01.lan:8765</div></div>
+            <div class="field2"><div class="fl2">TOKEN · Bearer</div><div class="fv2">••••••••••••••••••••</div></div>
+            <div class="field2"><div class="fl2">CERT FINGERPRINT · optional</div><div class="fv2 ph">sha256 / SPKI pin</div></div>
+            <div class="field2"><div class="fl2">POLL INTERVAL · seconds</div><div class="fv2">5</div></div>
+            <div class="ok"><svg><use href="#i-check"/></svg>Connection OK · 24 ms</div>
+            <div class="actions">
+              <div class="btn ghost">Test</div>
+              <div class="btn pri">Save</div>
+            </div>
+          </div>
+          <div class="scrollhint"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 SETTINGS -->
+    <div class="pw">
+      <div class="cap"><span class="idx">04</span><span class="nm2">Settings</span><span class="note">thresholds &amp; alerts</span></div>
+      <div class="phone">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="sb"><span>9:41</span><span class="r"><svg><use href="#i-signal"/></svg><svg><use href="#i-wifi"/></svg><svg><use href="#i-batt"/></svg></span></div>
+          <div class="abar">
+            <div class="iconbtn"><svg><use href="#i-back"/></svg></div>
+            <div class="t">Settings</div>
+          </div>
+          <div class="body">
+            <div class="sec2">Monitoring</div>
+            <div class="sg">
+              <div class="srow3"><span class="k">Poll interval</span><span class="v">5 s</span></div>
+              <div class="srow3"><span class="k">Offline timeout</span><span class="v">5 s</span></div>
+            </div>
+            <div class="sec2">Thresholds</div>
+            <div class="sg">
+              <div class="srow3"><span class="k">Warning<small>normal → warning</small></span><span class="v" style="color:#FFC93C">75 %</span></div>
+              <div class="srow3"><span class="k">Critical<small>warning → error</small></span><span class="v" style="color:#FF5C5C">90 %</span></div>
+            </div>
+            <div class="sec2">Alerts</div>
+            <div class="sg">
+              <div class="srow3"><span class="k">Background alerts<small>notify on state change</small></span><span class="switch"></span></div>
+              <div class="srow3"><span class="k">Quiet hours</span><span class="v">22:00 – 07:00</span></div>
+            </div>
+            <div class="sec2">About</div>
+            <div class="abt">Servex 1.0 · GPL-3.0<br>Reference HTTP agent · no third-party services</div>
+          </div>
+          <div class="scrollhint"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- spec strip -->
+  <div class="specbar">
+    <div>
+      <div class="sh">Color tokens</div>
+      <div class="pal">
+        <div class="sw2"><div class="c" style="background:#0F1115"></div><div class="n">Background</div><div class="h">#0F1115</div></div>
+        <div class="sw2"><div class="c" style="background:#1A1D23"></div><div class="n">Surface</div><div class="h">#1A1D23</div></div>
+        <div class="sw2"><div class="c" style="background:#232732"></div><div class="n">Surface 2</div><div class="h">#232732</div></div>
+        <div class="sw2"><div class="c" style="background:#E6E9EF"></div><div class="n">On-surface</div><div class="h">#E6E9EF</div></div>
+        <div class="sw2"><div class="c" style="background:#8A9099"></div><div class="n">On-surface 2</div><div class="h">#8A9099</div></div>
+        <div class="sw2"><div class="c" style="background:#4C8DFF"></div><div class="n">Primary</div><div class="h">#4C8DFF</div></div>
+        <div class="sw2"><div class="c" style="background:#3DDC84"></div><div class="n">Success</div><div class="h">#3DDC84</div></div>
+        <div class="sw2"><div class="c" style="background:#FFC93C"></div><div class="n">Warning</div><div class="h">#FFC93C</div></div>
+        <div class="sw2"><div class="c" style="background:#FF5C5C"></div><div class="n">Error</div><div class="h">#FF5C5C</div></div>
+        <div class="sw2"><div class="c" style="background:#6B7280"></div><div class="n">Offline</div><div class="h">#6B7280</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="sh">Type scale</div>
+      <div class="specrow"><span class="a">titleLarge</span><span class="b" style="font-size:17px">Screen &amp; card titles · 20 / Bold</span></div>
+      <div class="specrow"><span class="a">headlineMedium</span><span class="b" style="font-size:20px;font-variant-numeric:tabular-nums">Metrics · 28 / SemiBold</span></div>
+      <div class="specrow"><span class="a">bodyMedium</span><span class="b" style="font-size:14px">Rows &amp; values · 14 / Regular</span></div>
+      <div class="specrow"><span class="a">labelSmall</span><span class="b" style="font-size:12px;color:#8A9099">Secondary labels · 11</span></div>
+    </div>
+    <div>
+      <div class="sh">Spacing &amp; shape</div>
+      <div class="toks3">
+        <span class="tok3"><b>Spacing</b> 4 · 8 · 12 · 16 · 24</span>
+        <span class="tok3"><b>Card radius</b> 12–14</span>
+        <span class="tok3"><b>Button radius</b> 11</span>
+        <span class="tok3"><b>Icon</b> 24 / 20 / 18</span>
+        <span class="tok3"><b>Screen padding</b> 16</span>
+        <span class="tok3"><b>Android target</b> ≥ 48dp</span>
+        <span class="tok3"><b>State</b> color + icon + text</span>
+        <span class="tok3"><b>Contrast</b> body ≥ 4.5:1</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

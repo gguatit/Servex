@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Servex — 발표자료</title>
+<style>
+  :root{
+    --bg:#0F1115; --surface:#1A1D23; --surface2:#232732;
+    --on:#E6E9EF; --on2:#8A9099;
+    --primary:#4C8DFF; --success:#3DDC84; --warning:#FFC93C; --error:#FF5C5C; --offline:#6B7280;
+    --border:#2A2E38;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#06070A;color:var(--on);
+    font-family:-apple-system,"Segoe UI",Roboto,"Malgun Gothic","Noto Sans KR",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  @page{size:A4 landscape;margin:0}
+
+  .slide{
+    position:relative;width:1123px;height:794px;background:var(--bg);
+    padding:70px 80px;overflow:hidden;page-break-after:always;break-after:page;
+  }
+  .slide:last-child{page-break-after:auto;break-after:auto}
+  .kicker{font-size:14px;letter-spacing:.22em;text-transform:uppercase;color:var(--primary);font-weight:700}
+  h2{font-size:40px;margin:14px 0 6px;letter-spacing:-.01em}
+  .lead{font-size:18px;color:var(--on2);margin:0 0 28px;line-height:1.55}
+  .foot{position:absolute;left:80px;right:80px;bottom:34px;display:flex;justify-content:space-between;
+    font-size:13px;color:var(--on2);border-top:1px solid var(--border);padding-top:14px}
+
+  /* cover */
+  .cover{display:flex;flex-direction:column;justify-content:center;height:100%}
+  .cover .mark{width:76px;height:76px;color:var(--primary);margin-bottom:26px}
+  .cover h1{font-size:82px;margin:0;letter-spacing:-.02em}
+  .cover .tag{font-size:24px;color:var(--on2);margin-top:10px}
+  .cover .chips{display:flex;gap:10px;margin-top:34px}
+  .chip{font-size:14px;color:var(--on);background:var(--surface);border:1px solid var(--border);
+    border-radius:999px;padding:8px 16px}
+
+  /* two column */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;height:600px}
+  .cols.wide-left{grid-template-columns:1.25fr .75fr}
+
+  ul.pts{list-style:none;padding:0;margin:0}
+  ul.pts li{position:relative;padding:0 0 20px 30px;font-size:18px;line-height:1.5;color:var(--on)}
+  ul.pts li b{color:var(--primary);font-weight:700}
+  ul.pts li span{display:block;color:var(--on2);font-size:15px;margin-top:4px}
+  ul.pts li::before{content:"";position:absolute;left:0;top:9px;width:10px;height:10px;border-radius:3px;background:var(--primary)}
+
+  .shot{display:flex;align-items:center;justify-content:center;height:100%}
+  .shot img{max-height:100%;max-width:100%;border-radius:18px;border:1px solid var(--border)}
+  .shot.tall img{height:640px;width:auto}
+  .shot.sheet img{height:640px;width:auto}
+
+  .tokens{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+  .tk{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:8px 12px;font-size:13px;color:var(--on2)}
+  .tk i{width:14px;height:14px;border-radius:4px;display:inline-block}
+
+  .stack{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:8px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px}
+  .card h4{margin:0 0 6px;font-size:16px;color:var(--on)}
+  .card p{margin:0;font-size:14px;color:var(--on2);line-height:1.5}
+
+  .dark-note{font-size:13px;color:var(--on2);margin-top:20px}
+</style>
+</head>
+<body>
+
+  <!-- 1. COVER -->
+  <section class="slide">
+    <div class="cover">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5h16v5H4Z"/><path d="M4 14h16v5H4Z"/><path d="M8 7.5v.01M8 16.5v.01"/>
+      </svg>
+      <h1>Servex</h1>
+      <div class="tag">개인 서버를 한눈에 관제하는 안드로이드 앱</div>
+      <div class="chips">
+        <span class="chip">다크 우선 · 미니멀</span>
+        <span class="chip">에이전트 직접 접속</span>
+        <span class="chip">GPL-3.0 오픈소스</span>
+      </div>
+    </div>
+    <div class="foot"><span>UI 제안서</span><span>v1.0</span></div>
+  </section>
+
+  <!-- 2. INTRO -->
+  <section class="slide">
+    <div class="kicker">Overview</div>
+    <h2>프로젝트 소개</h2>
+    <p class="lead">서버에 설치한 경량 에이전트와 직접 통신해 CPU · 메모리 · 디스크 · 네트워크 상태를 실시간으로 보여줍니다.</p>
+    <div class="cols wide-left">
+      <ul class="pts">
+        <li><b>전문적이고 차분한 다크 UI</b><span>작은 화면에서도 상태를 즉시 파악</span></li>
+        <li><b>카드형 컴포넌트 · 통일된 규칙</b><span>색 + 아이콘 + 텍스트로 상태를 삼중 표현</span></li>
+        <li><b>서버 CRUD · 자동 갱신 · 임계치 경보</b><span>연결부터 모니터링까지 한 앱에서</span></li>
+        <li><b>핵심 원칙</b><span>중요 정보 우선 · 장식 최소 · 포인트 색 최소 사용</span></li>
+      </ul>
+      <div class="card">
+        <h4>구성</h4>
+        <p><b style="color:var(--on)">Agent</b> — 서버측 경량 모니터 (Python 표준 라이브러리)<br><br>
+           <b style="color:var(--on)">App</b> — 지표 조회 · 그래프 · 알림 · 원격 액션</p>
+        <p class="dark-note">키워드 — Minimal · Clear · Technical · Calm</p>
+      </div>
+    </div>
+    <div class="foot"><span>Servex UI 제안서</span><span>2 / 6</span></div>
+  </section>
+
+  <!-- 3. DESIGN SYSTEM -->
+  <section class="slide">
+    <div class="kicker">Design System</div>
+    <h2>디자인 시스템</h2>
+    <p class="lead">색 · 타이포그래피 · 버튼 · 아이콘 · 컴포넌트를 하나의 규칙으로 정의했습니다.</p>
+    <div class="cols">
+      <div class="shot sheet"><img src="servex-style-sheet.png" alt="Servex 디자인 시스템 시트"></div>
+      <div>
+        <div class="kicker" style="font-size:12px">Color Tokens</div>
+        <div class="tokens">
+          <span class="tk"><i style="background:#0F1115"></i>#0F1115 배경</span>
+          <span class="tk"><i style="background:#1A1D23"></i>#1A1D23 카드</span>
+          <span class="tk"><i style="background:#232732"></i>#232732 영역</span>
+          <span class="tk"><i style="background:#E6E9EF"></i>#E6E9EF 본문</span>
+          <span class="tk"><i style="background:#8A9099"></i>#8A9099 보조</span>
+          <span class="tk"><i style="background:#4C8DFF"></i>#4C8DFF 포인트</span>
+          <span class="tk"><i style="background:#3DDC84"></i>#3DDC84 정상</span>
+          <span class="tk"><i style="background:#FFC93C"></i>#FFC93C 주의</span>
+          <span class="tk"><i style="background:#FF5C5C"></i>#FF5C5C 오류</span>
+          <span class="tk"><i style="background:#6B7280"></i>#6B7280 오프라인</span>
+        </div>
+        <p class="dark-note">아이콘은 직접 그린 벡터(24dp · 2dp stroke). 색만으로 상태를 구분하지 않습니다.</p>
+      </div>
+    </div>
+    <div class="foot"><span>Servex UI 제안서</span><span>3 / 6</span></div>
+  </section>
+
+  <!-- 4. CONNECT -->
+  <section class="slide">
+    <div class="kicker">Screen 01</div>
+    <h2>연결 전 — 서버 연결 화면</h2>
+    <p class="lead">서버 주소와 토큰을 입력해 연결합니다. 저장된 서버는 바로 선택할 수 있습니다.</p>
+    <div class="cols">
+      <div class="shot tall"><img src="servex-connect.png" alt="서버 연결 화면"></div>
+      <ul class="pts">
+        <li><b>주소 · 토큰 입력</b><span>에이전트 주소와 Bearer 토큰</span></li>
+        <li><b>연결 진행 표시</b><span>연결 중 상태를 명확하게 피드백</span></li>
+        <li><b>Saved servers</b><span>저장된 서버를 한 번에 다시 연결</span></li>
+      </ul>
+    </div>
+    <div class="foot"><span>Servex UI 제안서</span><span>4 / 6</span></div>
+  </section>
+
+  <!-- 5. MAIN -->
+  <section class="slide">
+    <div class="kicker">Screen 02</div>
+    <h2>연결 후 — 메인 화면</h2>
+    <p class="lead">전체 상태를 먼저, 그다음 서버별 요약. 색 · 아이콘 · 텍스트로 상태를 한눈에.</p>
+    <div class="cols">
+      <div class="shot tall"><img src="servex-main.png" alt="메인 화면"></div>
+      <ul class="pts">
+        <li><b>요약 스트립</b><span>정상 · 주의 · 오류 · 오프라인 개수</span></li>
+        <li><b>서버 카드</b><span>이름 · 주소 · 상태 · CPU 스파크라인</span></li>
+        <li><b>상세로 연결</b><span>카드를 누르면 지표와 그래프 화면으로</span></li>
+      </ul>
+    </div>
+    <div class="foot"><span>Servex UI 제안서</span><span>5 / 6</span></div>
+  </section>
+
+  <!-- 6. CLOSING -->
+  <section class="slide">
+    <div class="kicker">Stack &amp; License</div>
+    <h2>기술 스택 · 라이선스</h2>
+    <p class="lead">앱은 Kotlin · Jetpack Compose, 에이전트는 외부 의존성 없는 Python으로 구성됩니다.</p>
+    <div class="stack">
+      <div class="card"><h4>App</h4><p>Kotlin · Jetpack Compose (Material 3) · MVVM · OkHttp · kotlinx.serialization · DataStore · WorkManager</p></div>
+      <div class="card"><h4>Agent</h4><p>Python 3 · 표준 라이브러리만 사용 · 단일 파일 · Bearer 토큰 인증</p></div>
+      <div class="card"><h4>디자인</h4><p>다크 우선 · 10색 토큰 · 직접 그린 벡터 아이콘 · 카드형 컴포넌트</p></div>
+      <div class="card"><h4>License</h4><p>GPL-3.0 · 오픈소스 공개 (Servex)</p></div>
+    </div>
+    <div class="foot"><span>감사합니다</span><span>6 / 6</span></div>
+  </section>
+
+</body>
+</html>

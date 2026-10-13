@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1040">
+<title>Servex — Design System</title>
+<style>
+  :root{
+    --bg:#0F1115;
+    --surface:#1A1D23;
+    --surface-variant:#232732;
+    --on:#E6E9EF;
+    --on-variant:#8A9099;
+    --primary:#4C8DFF;
+    --success:#3DDC84;
+    --warning:#FFC93C;
+    --error:#FF5C5C;
+    --offline:#6B7280;
+    --border:#2A2E38;
+    --r-card:12px;
+    --r-btn:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:#06070A;
+    color:var(--on);
+    font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans",Helvetica,Arial,sans-serif;
+    padding:40px 20px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{
+    width:1000px;margin:0 auto;background:var(--bg);
+    border:1px solid var(--border);border-radius:18px;padding:48px 44px;
+  }
+
+  /* header */
+  .brand{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .brand .logo{width:40px;height:40px;color:var(--primary)}
+  .brand h1{font-size:26px;font-weight:800;margin:0;letter-spacing:-.01em}
+  .brand .sub{color:var(--on-variant);font-size:13px;margin-top:2px}
+  .meta{color:var(--on-variant);font-size:12px;letter-spacing:.04em;margin-top:10px}
+
+  /* section */
+  .sec{margin-top:44px}
+  .sec-head{
+    display:flex;align-items:center;gap:12px;
+    font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--primary);padding-bottom:12px;border-bottom:1px solid var(--border);
+    margin-bottom:22px;
+  }
+  .sec-head .n{color:var(--on-variant);font-weight:800}
+  .row{display:flex;gap:16px}
+  .grid{display:grid;gap:16px}
+
+  /* 01 typography */
+  .type-row{display:flex;align-items:baseline;gap:26px;padding:14px 0;border-bottom:1px dashed #22262e}
+  .type-row:last-child{border-bottom:0}
+  .type-demo{color:var(--on)}
+  .t-title{font-size:20px;font-weight:700}
+  .t-head{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums}
+  .t-body{font-size:14px;font-weight:400}
+  .t-label{font-size:11px;font-weight:400;letter-spacing:.4px;color:var(--on-variant)}
+  .type-spec{margin-left:auto;color:var(--on-variant);font-size:11px;text-align:right;line-height:1.5}
+  .type-spec b{color:var(--on);font-weight:600}
+
+  /* 02 colors */
+  .sw{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .chip .c{height:64px}
+  .chip .info{padding:10px 12px}
+  .chip .name{font-size:12px;font-weight:600}
+  .chip .hex{font-size:11px;color:var(--on-variant);font-family:ui-monospace,Consolas,monospace;margin-top:2px}
+  .swatches-lg .chip .c{height:84px}
+
+  /* 03 buttons */
+  .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  .btn-col h4{margin:0 0 12px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--on-variant)}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;justify-content:center;
+    padding:11px 18px;border-radius:var(--r-btn);font-size:14px;font-weight:600;
+    border:1px solid transparent;cursor:default;margin:0 0 10px;
+  }
+  .btn .ic{width:18px;height:18px}
+  .btn-primary{background:var(--primary);color:#07101F}
+  .btn-primary.press{background:#356FCB}
+  .btn-primary.disabled{background:var(--primary);opacity:.35}
+  .btn-outline{background:transparent;color:var(--primary);border-color:var(--primary)}
+  .btn-outline.press{background:rgba(76,141,255,.16)}
+  .btn-outline.disabled{color:var(--primary);border-color:var(--primary);opacity:.35}
+  .btn-ghost{background:transparent;color:var(--on)}
+  .btn-ghost.press{background:var(--surface-variant)}
+  .btn-ghost.disabled{opacity:.35}
+  .state-label{display:block;font-size:11px;color:var(--on-variant);margin:-6px 0 10px}
+
+  /* 04 icons */
+  .icons-block{margin-bottom:22px}
+  .icons-block h4{margin:0 0 4px;font-size:12px;color:var(--on-variant);font-weight:600}
+  .icons{display:flex;flex-wrap:wrap;gap:8px}
+  .ic-cell{
+    width:60px;height:60px;display:flex;align-items:center;justify-content:center;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  }
+  .ic{width:24px;height:24px;color:var(--on)}
+  .s-normal .ic{color:var(--on)}
+  .s-hover  .ic{color:var(--primary)}
+  .s-press  .ic{color:var(--primary)} .s-press .ic-cell{background:var(--surface-variant)}
+  .s-dim    .ic{color:var(--on-variant);opacity:.45}
+
+  /* 05 status */
+  .status-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .sbox{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+  .sbox .cap{font-size:11px;color:var(--on-variant);margin-top:10px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill .ic{width:16px;height:16px}
+  .p-normal{color:var(--success);background:rgba(61,220,132,.14)}
+  .p-warning{color:var(--warning);background:rgba(255,201,60,.14)}
+  .p-error{color:var(--error);background:rgba(255,92,92,.14)}
+  .p-offline{color:var(--offline);background:rgba(107,114,128,.18)}
+
+  /* 06 components */
+  .demo-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .card{
+    background:var(--surface);border-radius:var(--r-card);padding:16px;
+  }
+  .card .top{display:flex;align-items:center;gap:10px}
+  .card .name{font-size:17px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card .url{font-size:11px;color:var(--on-variant);margin-top:4px}
+  .spark{width:100%;height:34px;margin-top:12px;display:block}
+  .metrics{display:flex;justify-content:space-around;text-align:center;margin-top:6px}
+  .metric .ic{width:20px;height:20px;color:var(--on-variant)}
+  .metric .val{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;margin:6px 0 2px}
+  .metric .lab{font-size:11px;color:var(--on-variant)}
+  .disk{margin-top:14px}
+  .disk .dl{display:flex;justify-content:space-between;font-size:12px;color:var(--on-variant);margin-bottom:6px}
+  .bar{height:10px;border-radius:6px;background:var(--surface-variant);overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px}
+  .mrow{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:14px;color:var(--on)}
+  .mrow .ic{width:20px;height:20px;color:var(--on-variant)}
+  .mrow .k{color:var(--on-variant)}
+  .mrow .v{margin-left:auto;font-variant-numeric:tabular-nums}
+
+  /* 07 form + tokens */
+  .field{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+  .field .fl{font-size:11px;color:var(--on-variant)}
+  .field .fv{font-size:14px;margin-top:3px}
+  .field.focus{border-color:var(--primary)}
+  .toks{display:flex;flex-wrap:wrap;gap:12px;margin-top:4px}
+  .tok{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--on-variant)}
+  .tok b{color:var(--on);font-weight:600}
+  .rule{height:14px;background:var(--primary);border-radius:4px;display:inline-block;vertical-align:middle}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ic-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-warning" viewBox="0 0 24 24"><path d="M12 3L22 20H2L12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17.2v0.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-error" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0 -18Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 9l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M15 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-offline" viewBox="0 0 24 24"><path d="M7 18h9a4 4 0 0 0 0.6 -7.95A5 5 0 0 0 8 9.2A4 4 0 0 0 7 18Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4l16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-cpu" viewBox="0 0 24 24"><path d="M7 7h10v10H7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-memory" viewBox="0 0 24 24"><path d="M4 6h16v4H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M4 14h16v4H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-disk" viewBox="0 0 24 24"><path d="M4 5h16v5H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M4 14h16v5H4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 7.5v0.01M8 16.5v0.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-network" viewBox="0 0 24 24"><path d="M4 9h14M15 6l3 3l-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15H6M9 12l-3 3l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0 -2 6M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-settings" viewBox="0 0 24 24"><path d="M12 4l1 2.2l2.4 -0.6l0.6 2.4L18 9l-1 2l1 2l-2 1l-0.6 2.4L13 15.8L12 18l-1 -2.2l-2.4 0.6L8 14l-2 -1l1 -2L6 9l2 -1l0.6 -2.4L11 6.2L12 4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 9.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0 -5Z" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="ic-back" viewBox="0 0 24 24"><path d="M15 5l-7 7l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-add" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="ic-edit" viewBox="0 0 24 24"><path d="M5 19h3l10 -10l-3 -3L5 16Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-delete" viewBox="0 0 24 24"><path d="M6 7h12M9 7V5h6v2M8 7l1 12h6l1 -12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="sheet" id="sheet">
+  <div class="brand">
+    <svg class="logo"><use href="#ic-disk"/></svg>
+    <div>
+      <h1>Servex — Design System</h1>
+      <div class="sub">Personal server monitoring · dark-first · minimal · technical</div>
+    </div>
+  </div>
+  <div class="meta">v1 · GPL-3.0 · tokens: background / surface / on-surface / accent · spacing 4·8·12·16·24 · radius 10–12</div>
+
+  <!-- 01 TYPOGRAPHY -->
+  <section class="sec">
+    <div class="sec-head"><span class="n">01</span> Typography</div>
+    <div class="type-row">
+      <div class="type-demo t-title">Server Overview</div>
+      <div class="type-spec"><b>titleLarge</b> · 20sp · Bold<br>screen &amp; card titles</div>
+    </div>
+    <div class="type-row">
+      <div class="type-demo t-head">37%</div>
+      <div class="type-spec"><b>headlineMedium</b> · 28sp · SemiBold · tabular<br>primary metrics (CPU / MEM / DISK)</div>
+    </div>
+    <div class="type-row">
+      <div class="type-demo t-body">Ubuntu 24.04 · up 4d 6h · eth0 1.2 MB/s</div>
+      <div class="type-spec"><b>bodyMedium</b> · 14sp · Regular<br>rows &amp; values</div>
+    </div>
+    <div class="type-row">
+      <div class="type-demo t-label">UPTIME · LOAD · MOUNT · IFA CE</div>
+      <div class="type-spec"><b>labelSmall</b> · 11sp · Regular · low emphasis<br>secondary labels</div>
+    </div>
+  </section>
+
+  <!-- 02 COLOR -->
+  <section class="sec">
+    <div class="sec-head"><span class="n">02</span> Color Palette</div>
+    <div class="sw swatches-lg">
+      <div class="chip"><div class="c" style="background:#0F1115"></div><div class="info"><div class="name">Background</div><div class="hex">#0F1115</div></div></div>
+      <div class="chip"><div class="c" style="background:#1A1D23"></div><div class="info"><div class="name">Surface</div><div class="hex">#1A1D23</div></div></div>
+      <div class="chip"><div class="c" style="background:#232732"></div><div class="info"><div class="name">Surface Variant</div><div class="hex">#232732</div></div></div>
+      <div class="chip"><div class="c" style="background:#E6E9EF"></div><div class="info"><div class="name">On-Surface</div><div class="hex">#E6E9EF</div></div></div>
+      <div class="chip"><div class="c" style="background:#8A9099"></div><div class="info"><div class="name">On-Surface Variant</div><div class="hex">#8A9099</div></div></div>
+    </div>
+    <div class="sw" style="margin-top:14px">
+      <div class="chip"><div class="c" style="background:#4C8DFF"></div><div class="info"><div class="name">Primary · accent</div><div class="hex">#4C8DFF</div></div></div>
+      <div class="chip"><div class="c" style="background:#3DDC84"></div><div class="info"><div class="name">Success · normal</div><div class="hex">#3DDC84</div></div></div>
+      <div class="chip"><div class="c" style="background:#FFC93C"></div><div class="info"><div class="name">Warning · 75%+</div><div class="hex">#FFC93C</div></div></div>
+      <div class="chip"><div class="c" style="background:#FF5C5C"></div><div class="info"><div class="name">Error · 90%+</div><div class="hex">#FF5C5C</div></div></div>
+      <div class="chip"><div class="c" style="background:#6B7280"></div><div class="info"><div class="name">Offline</div><div class="hex">#6B7280</div></div></div>
+    </div>
+  </section>
+
+  <!-- 03 BUTTONS -->
+  <section class="sec">
+    <div class="sec-head"><span class="n">03</span> Buttons</div>
+    <div class="btn-grid">
+      <div class="btn-col">
+        <h4>Primary · Outlined · Ghost</h4>
+        <span class="state-label">Normal</span>
+        <span class="btn btn-primary"><svg class="ic"><use href="#ic-refresh"/></svg>Restart service</span>
+        <span class="btn btn-outline"><svg class="ic"><use href="#ic-add"/></svg>Add server</span>
+        <span class="btn btn-ghost"><svg class="ic"><use href="#ic-edit"/></svg>Edit</span>
+      </div>
+      <div class="btn-col">
+        <h4>&nbsp;</h4>
+        <span class="state-label">Pressed</span>
+        <span class="btn btn-primary press"><svg class="ic"><use href="#ic-refresh"/></svg>Restart service</span>
+        <span class="btn btn-outline press"><svg class="ic"><use href="#ic-add"/></svg>Add server</span>
+        <span class="btn btn-ghost press"><svg class="ic"><use href="#ic-edit"/></svg>Edit</span>
+      </div>
+      <div class="btn-col">
+        <h4>&nbsp;</h4>
+        <span class="state-label">Disabled</span>
+        <span class="btn btn-primary disabled"><svg class="ic"><use href="#ic-refresh"/></svg>Restart service</span>
+        <span class="btn btn-outline disabled"><svg class="ic"><use href="#ic-add"/></svg>Add server</span>
+        <span class="btn btn-ghost disabled"><svg class="ic"><use href="#ic-edit"/></svg>Edit</span>
+      </div>
+      <div class="btn-col">
+        <h4>Icon buttons (24dp / 20dp)</h4>
+        <span class="state-label">Toolbar</span>
+        <span class="ic-cell" style="display:inline-flex;margin-right:8px"><svg class="ic"><use href="#ic-refresh"/></svg></span>
+        <span class="ic-cell" style="display:inline-flex;margin-right:8px"><svg class="ic"><use href="#ic-add"/></svg></span>
+        <span class="ic-cell" style="display:inline-flex;margin-right:8px"><svg class="ic"><use href="#ic-settings"/></svg></span>
+        <span class="ic-cell" style="display:inline-flex"><svg class="ic"><use href="#ic-back"/></svg></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 ICONS -->
+  <section class="sec">
+    <div class="sec-head"><span class="n">04</span> Icons</div>
+
+    <div class="icons-block s-normal">
+      <h4>Normal</h4>
+      <div class="icons">
+        <div class="ic-cell"><svg class="ic"><use href="#ic-check"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-warning"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-error"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-offline"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-cpu"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-memory"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-disk"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-network"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-refresh"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-settings"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-back"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-add"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-edit"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-delete"/></svg></div>
+      </div>
+    </div>
+
+    <div class="icons-block s-hover">
+      <h4>Hover · accent</h4>
+      <div class="icons">
+        <div class="ic-cell"><svg class="ic"><use href="#ic-check"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-warning"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-error"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-offline"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-cpu"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-memory"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-disk"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-network"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-refresh"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-settings"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-back"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-add"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-edit"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-delete"/></svg></div>
+      </div>
+    </div>
+
+    <div class="icons-block s-press">
+      <h4>Pressed</h4>
+      <div class="icons">
+        <div class="ic-cell"><svg class="ic"><use href="#ic-check"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-warning"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-error"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-offline"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-cpu"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-memory"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-disk"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-network"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-refresh"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-settings"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-back"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-add"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-edit"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-delete"/></svg></div>
+      </div>
+    </div>
+
+    <div class="icons-block s-dim">
+      <h4>Disabled / Dim</h4>
+      <div class="icons">
+        <div class="ic-cell"><svg class="ic"><use href="#ic-check"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-warning"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-error"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-offline"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-cpu"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-memory"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-disk"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-network"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-refresh"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-settings"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-back"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-add"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-edit"/></svg></div>
+        <div class="ic-cell"><svg class="ic"><use href="#ic-delete"/></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 STATUS -->
+  <section class="sec">
+    <div class="sec-head"><span class="n">05</span> Status Representation</div>
+    <div class="status-grid">
+      <div class="sbox"><span class="pill p-normal"><svg class="ic"><use href="#ic-check"/></svg>Normal</span><div class="cap">&lt; 75% · 정상</div></div>
+      <div class="sbox"><span class="pill p-warning"><svg class="ic"><use href="#ic-warning"/></svg>Warning</span><div class="cap">≥ 75% · 주의</div></div>
+      <div class="sbox"><span class="pill p-error"><svg class="ic"><use href="#ic-error"/></svg>Error</span><div class="cap">≥ 90% · 오류</div></div>
+      <div class="sbox"><span class="pill p-offline"><svg class="ic"><use href="#ic-offline"/></svg>Offline</span><div class="cap">no response · 오프라인</div></div>
+    </div>
+    <div class="meta" style="margin-top:14px">Rule: never encode status by color alone — always color + icon + text.</div>
+  </section>
+
+  <!-- 06 COMPONENTS -->
+  <section class="sec">
+    <div class="sec-head"><span class="n">06</span> Components</div>
+    <div class="demo-wrap">
+      <div>
+        <div class="card">
+          <div class="top">
+            <span class="name">web-01</span>
+            <span class="pill p-normal"><svg class="ic"><use href="#ic-check"/></svg>Normal</span>
+          </div>
+          <div class="url">10.0.0.5 · http://10.0.0.5:8765</div>
+          <svg class="spark" viewBox="0 0 300 34" preserveAspectRatio="none">
+            <path d="M0 26 L30 22 L60 24 L90 12 L120 18 L150 8 L180 16 L210 10 L240 20 L270 14 L300 18"
+                  fill="none" stroke="#4C8DFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <div class="top">
+            <span class="name">db-01</span>
+            <span class="pill p-warning"><svg class="ic"><use href="#ic-warning"/></svg>Warning</span>
+          </div>
+          <div class="url">10.0.0.9 · https://db-01.lan</div>
+          <svg class="spark" viewBox="0 0 300 34" preserveAspectRatio="none">
+            <path d="M0 20 L30 18 L60 22 L90 16 L120 24 L150 12 L180 20 L210 8 L240 16 L270 12 L300 6"
+                  fill="none" stroke="#FFC93C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="metrics">
+          <div class="metric"><svg class="ic"><use href="#ic-cpu"/></svg><div class="val">37%</div><div class="lab">CPU</div></div>
+          <div class="metric"><svg class="ic"><use href="#ic-memory"/></svg><div class="val">54%</div><div class="lab">MEM</div></div>
+          <div class="metric"><svg class="ic"><use href="#ic-disk"/></svg><div class="val">40%</div><div class="lab">DISK</div></div>
+        </div>
+        <div class="disk">
+          <div class="dl"><span>/</span><span>39.8%</span></div>
+          <div class="bar"><i style="width:39.8%;background:#3DDC84"></i></div>
+        </div>
+        <div class="disk">
+          <div class="dl"><span>/data</span><span>78.2%</span></div>
+          <div class="bar"><i style="width:78.2%;background:#FFC93C"></i></div>
+        </div>
+        <div style="margin-top:16px">
+          <div class="mrow"><svg class="ic"><use href="#ic-network"/></svg><span class="k">eth0 rx</span><span class="v">1.2 MB/s</span></div>
+          <div class="mrow"><svg class="ic"><use href="#ic-network"/></svg><span class="k">eth0 tx</span><span class="v">512 KB/s</span></div>
+          <div class="mrow"><svg class="ic"><use href="#ic-cpu"/></svg><span class="k">load</span><span class="v">1.42 · 1.10 · 0.98</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 FORM + TOKENS -->
+  <section class="sec">
+    <div class="sec-head"><span class="n">07</span> Fields &amp; Layout Tokens</div>
+    <div class="demo-wrap">
+      <div>
+        <div class="field focus"><div class="fl">Name</div><div class="fv">web-01</div></div>
+        <div class="field"><div class="fl">Base URL</div><div class="fv">https://web-01.lan:8765</div></div>
+        <div class="field"><div class="fl">Token</div><div class="fv">••••••••••••••••••••</div></div>
+      </div>
+      <div>
+        <div class="toks">
+          <span class="tok"><b>Spacing</b> 4 · 8 · 12 · 16 · 24</span>
+          <span class="tok"><b>Card radius</b> 12</span>
+          <span class="tok"><b>Button radius</b> 10</span>
+          <span class="tok"><b>Icon</b> 24 / 20 / 16</span>
+          <span class="tok"><b>Screen padding</b> 16</span>
+          <span class="tok"><b>State</b> color + icon + text</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

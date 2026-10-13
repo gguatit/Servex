@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=520">
+<title>Servex — Home</title>
+<style>
+  :root{
+    --bg:#0F1115; --surface:#1A1D23; --surface-variant:#232732;
+    --on:#E6E9EF; --on-variant:#8A9099;
+    --primary:#4C8DFF; --success:#3DDC84; --warning:#FFC93C; --error:#FF5C5C; --offline:#6B7280;
+    --border:#2A2E38;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:#06070A;color:var(--on);
+    font-family:-apple-system,"Segoe UI",Roboto,"Noto Sans",Helvetica,Arial,sans-serif;
+    padding:40px 20px;-webkit-font-smoothing:antialiased;
+  }
+  #page{width:400px;margin:0 auto;display:flex;flex-direction:column;gap:18px;align-items:center}
+  .cap{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--on-variant);font-weight:700}
+  .phone{
+    width:360px;height:748px;background:var(--bg);border:1px solid var(--border);
+    border-radius:40px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.55);position:relative;
+  }
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column}
+  .ic{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* status bar */
+  .sb{display:flex;align-items:center;justify-content:space-between;padding:12px 22px 6px;font-size:13px;font-weight:600;color:var(--on)}
+  .sb .r{display:flex;gap:6px;align-items:center}
+  .sb .r svg{width:16px;height:16px}
+
+  /* app bar */
+  .appbar{display:flex;align-items:center;gap:8px;padding:6px 16px 12px}
+  .brand{display:flex;align-items:center;gap:9px;flex:1}
+  .brand svg{width:24px;height:24px;color:var(--primary)}
+  .brand h1{font-size:20px;font-weight:700;margin:0;letter-spacing:-.01em}
+  .ibtn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--on-variant)}
+  .ibtn svg{width:22px;height:22px}
+
+  .content{padding:0 16px;flex:1;display:flex;flex-direction:column;gap:12px}
+
+  /* summary strip */
+  .summary{display:flex;gap:8px;flex-wrap:wrap;padding:2px 0 2px}
+  .sc{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 0}
+  .dot{width:7px;height:7px;border-radius:50%}
+  .sc.g{color:var(--success)} .sc.y{color:var(--warning)} .sc.r{color:var(--error)} .sc.o{color:var(--offline)}
+  .sc.g .dot{background:var(--success)} .sc.y .dot{background:var(--warning)}
+  .sc.r .dot{background:var(--error)} .sc.o .dot{background:var(--offline)}
+
+  /* server card */
+  .card{background:var(--surface);border-radius:12px;padding:16px}
+  .card .top{display:flex;align-items:center;gap:10px}
+  .card .name{font-size:17px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card .url{font-size:11px;color:var(--on-variant);margin-top:4px}
+  .spark{width:100%;height:32px;margin-top:12px;display:block}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600}
+  .pill svg{width:14px;height:14px}
+  .p-normal{color:var(--success);background:rgba(61,220,132,.14)}
+  .p-warning{color:var(--warning);background:rgba(255,201,60,.14)}
+  .p-offline{color:var(--offline);background:rgba(107,114,128,.18)}
+
+  /* fab */
+  .fab{position:absolute;right:20px;bottom:28px;width:52px;height:52px;border-radius:16px;background:var(--primary);
+       display:flex;align-items:center;justify-content:center;color:#07101F;box-shadow:0 12px 26px rgba(76,141,255,.45)}
+  .fab svg{width:24px;height:24px}
+  .gesture{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:120px;height:4px;border-radius:2px;background:#3A3F49}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="ic-disk" viewBox="0 0 24 24"><path d="M4 5h16v5H4Z"/><path d="M4 14h16v5H4Z"/><path d="M8 7.5v0.01M8 16.5v0.01"/></symbol>
+  <symbol id="ic-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0 -2 6M20 5v6h-6"/></symbol>
+  <symbol id="ic-add" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="ic-settings" viewBox="0 0 24 24"><path d="M12 4l1 2.2l2.4 -0.6l0.6 2.4L18 9l-1 2l1 2l-2 1l-0.6 2.4L13 15.8L12 18l-1 -2.2l-2.4 0.6L8 14l-2 -1l1 -2L6 9l2 -1l0.6 -2.4L11 6.2L12 4Z"/><path d="M12 9.5a2.5 2.5 0 1 0 0 5a2.5 2.5 0 1 0 0 -5Z"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
+  <symbol id="ic-warning" viewBox="0 0 24 24"><path d="M12 3L22 20H2L12 3Z"/><path d="M12 9v5"/><path d="M12 17.2v0.01"/></symbol>
+  <symbol id="ic-offline" viewBox="0 0 24 24"><path d="M7 18h9a4 4 0 0 0 0.6 -7.95A5 5 0 0 0 8 9.2A4 4 0 0 0 7 18Z"/><path d="M4 4l16 16"/></symbol>
+  <symbol id="ic-sig" viewBox="0 0 24 24"><path d="M4 16h2v4H4zM9 12h2v8H9zM14 8h2v12h-2zM19 4h2v16h-2z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="ic-wifi" viewBox="0 0 24 24"><path d="M5 12a10 10 0 0 1 14 0M8 15a6 6 0 0 1 8 0M12 18v0.01"/></symbol>
+  <symbol id="ic-batt" viewBox="0 0 24 24"><rect x="3" y="8" width="16" height="9" rx="2"/><path d="M21 11v3"/></symbol>
+</defs></svg>
+
+<div id="page">
+  <div class="cap">Home — live server overview</div>
+  <div class="phone">
+    <div class="screen">
+      <div class="sb">
+        <span>9:41</span>
+        <span class="r"><svg class="ic"><use href="#ic-sig"/></svg><svg class="ic"><use href="#ic-wifi"/></svg><svg class="ic"><use href="#ic-batt"/></svg></span>
+      </div>
+
+      <div class="appbar">
+        <div class="brand"><svg class="ic"><use href="#ic-disk"/></svg><h1>Servex</h1></div>
+        <div class="ibtn"><svg class="ic"><use href="#ic-refresh"/></svg></div>
+        <div class="ibtn"><svg class="ic"><use href="#ic-add"/></svg></div>
+        <div class="ibtn"><svg class="ic"><use href="#ic-settings"/></svg></div>
+      </div>
+
+      <div class="content">
+        <div class="summary">
+          <span class="sc g"><span class="dot"></span>3 Normal</span>
+          <span class="sc y"><span class="dot"></span>1 Warning</span>
+          <span class="sc r"><span class="dot"></span>0 Error</span>
+          <span class="sc o"><span class="dot"></span>1 Offline</span>
+        </div>
+
+        <div class="card">
+          <div class="top">
+            <span class="name">web-01</span>
+            <span class="pill p-normal"><svg class="ic"><use href="#ic-check"/></svg>Normal</span>
+          </div>
+          <div class="url">10.0.0.5 · Ubuntu 24.04</div>
+          <svg class="spark" viewBox="0 0 300 32" preserveAspectRatio="none">
+            <path d="M0 24 L30 20 L60 22 L90 11 L120 17 L150 8 L180 15 L210 9 L240 19 L270 13 L300 17" fill="none" stroke="#4C8DFF" stroke-width="1.5"/>
+          </svg>
+        </div>
+
+        <div class="card">
+          <div class="top">
+            <span class="name">db-01</span>
+            <span class="pill p-warning"><svg class="ic"><use href="#ic-warning"/></svg>Warning</span>
+          </div>
+          <div class="url">10.0.0.9 · Ubuntu 24.04</div>
+          <svg class="spark" viewBox="0 0 300 32" preserveAspectRatio="none">
+            <path d="M0 18 L30 16 L60 20 L90 14 L120 22 L150 11 L180 18 L210 7 L240 15 L270 11 L300 6" fill="none" stroke="#FFC93C" stroke-width="1.5"/>
+          </svg>
+        </div>
+
+        <div class="card">
+          <div class="top">
+            <span class="name">nas-01</span>
+            <span class="pill p-offline"><svg class="ic"><use href="#ic-offline"/></svg>Offline</span>
+          </div>
+          <div class="url">10.0.0.20 · no response</div>
+          <svg class="spark" viewBox="0 0 300 32" preserveAspectRatio="none">
+            <path d="M0 16 L300 16" fill="none" stroke="#6B7280" stroke-width="1.5" stroke-dasharray="6 6"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="fab"><svg class="ic"><use href="#ic-add"/></svg></div>
+      <div class="gesture"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
