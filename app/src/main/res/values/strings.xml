@@ -32,4 +32,10 @@
     <string name="err_url">Enter an http(s) URL</string>
     <string name="action_test">Test connection</string>
     <string name="action_save">Save</string>
+
+    <string name="title_settings">Settings</string>
+    <string name="field_warning">Warning threshold (%)</string>
+    <string name="field_critical">Critical threshold (%)</string>
+    <string name="field_alerts">Background alerts</string>
+    <string name="about_license">Servex 1.0 - GPL-3.0</string>
 </resources>
