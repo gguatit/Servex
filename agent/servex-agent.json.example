@@ -1,0 +1,10 @@
+{
+  "bind": "0.0.0.0",
+  "port": 8765,
+  "token": "REPLACE_WITH_A_LONG_RANDOM_SECRET",
+  "sample_interval": 2,
+  "history_size": 150,
+  "disk_mounts": ["/"],
+  "actions": [],
+  "tls": { "cert": null, "key": null }
+}
