@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">Servex</string>
+
+    <string name="status_normal">정상</string>
+    <string name="status_warning">주의</string>
+    <string name="status_error">오류</string>
+    <string name="status_offline">오프라인</string>
+
+    <string name="metric_cpu">CPU</string>
+    <string name="metric_memory">메모리</string>
+    <string name="metric_disk">디스크</string>
+    <string name="metric_network">네트워크</string>
+
+    <string name="action_refresh">새로고침</string>
+    <string name="action_settings">설정</string>
+    <string name="action_back">뒤로</string>
+    <string name="action_add">서버 추가</string>
+    <string name="action_edit">편집</string>
+    <string name="action_delete">삭제</string>
+    <string name="action_save">저장</string>
+    <string name="action_test">연결 테스트</string>
+    <string name="action_confirm">확인</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_restart_service">서비스 재시작</string>
+
+    <string name="no_servers">서버가 없습니다. 서버를 추가하세요.</string>
+
+    <string name="section_cpu">CPU 부하</string>
+    <string name="section_disks">디스크</string>
+
+    <string name="title_edit_server">서버</string>
+    <string name="title_settings">설정</string>
+
+    <string name="field_name">이름</string>
+    <string name="field_url">기본 URL</string>
+    <string name="field_token">토큰</string>
+    <string name="field_fingerprint">인증서 지문 (선택)</string>
+    <string name="field_poll">갱신 주기 (초)</string>
+    <string name="field_warning">주의 임계치 (%)</string>
+    <string name="field_critical">위험 임계치 (%)</string>
+    <string name="field_alerts">백그라운드 알림</string>
+    <string name="field_service">서비스 이름</string>
+
+    <string name="err_name">이름을 입력하세요</string>
+    <string name="err_url">http(s) URL을 입력하세요</string>
+
+    <string name="confirm_restart">%1$s 의 서비스를 재시작할까요?</string>
+    <string name="about_license">Servex 1.0 - GPL-3.0</string>
+</resources>
