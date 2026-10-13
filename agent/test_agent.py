@@ -229,5 +229,64 @@ class TestHttp(unittest.TestCase):
         self.assertEqual(_get(port, "/api/v1/nope")[0], 404)
 
 
+def _post(port, path, payload, token="secret", raw=None):
+    data = raw if raw is not None else json.dumps(payload).encode()
+    req = urllib.request.Request("http://127.0.0.1:%d%s" % (port, path), data=data, method="POST")
+    req.add_header("Authorization", "Bearer " + token)
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            return resp.status, json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return e.code, json.loads(e.read())
+
+
+def _boot_actions(enabled):
+    config = sa.load_config(overrides={"token": "secret", "actions": enabled, "port": 0})
+    ring = sa.Ring(10)
+    sampler = sa.Sampler(ring, sa.LocalFS(), 2, ["/"])
+    httpd = sa.make_server(config, ring, sampler)
+    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    time.sleep(0.05)
+    return httpd, httpd.server_address[1]
+
+
+class TestActions(unittest.TestCase):
+    def test_disabled_by_default_403(self):
+        httpd, port = _boot_actions([])
+        self.addCleanup(httpd.server_close)
+        self.addCleanup(httpd.shutdown)
+        code, body = _post(port, "/api/v1/action", {"action": "system_info"})
+        self.assertEqual(code, 403)
+        self.assertIn("error", body)
+
+    def test_allowlisted_system_info_ok(self):
+        httpd, port = _boot_actions(["system_info"])
+        self.addCleanup(httpd.server_close)
+        self.addCleanup(httpd.shutdown)
+        code, body = _post(port, "/api/v1/action", {"action": "system_info"})
+        self.assertEqual(code, 200)
+        self.assertTrue(body["ok"])
+
+    def test_service_restart_rejects_bad_name(self):
+        self.assertFalse(bool(sa.SERVICE_NAME_RE.match("nginx; rm -rf /")))
+        self.assertTrue(bool(sa.SERVICE_NAME_RE.match("nginx")))
+        self.assertTrue(bool(sa.SERVICE_NAME_RE.match("ssh@1.service")))
+
+    def test_malformed_body_400(self):
+        httpd, port = _boot_actions(["system_info"])
+        self.addCleanup(httpd.server_close)
+        self.addCleanup(httpd.shutdown)
+        code, _ = _post(port, "/api/v1/action", None, raw=b"{not json")
+        self.assertEqual(code, 400)
+
+    def test_oversized_body_413(self):
+        httpd, port = _boot_actions(["system_info"])
+        self.addCleanup(httpd.server_close)
+        self.addCleanup(httpd.shutdown)
+        code, _ = _post(port, "/api/v1/action", None, raw=b"x" * 70000)
+        self.assertEqual(code, 413)
+
+
 if __name__ == "__main__":
     unittest.main()

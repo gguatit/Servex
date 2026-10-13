@@ -3,6 +3,8 @@
 import hmac
 import json
 import os
+import re
+import subprocess
 import threading
 import time
 import urllib.parse
@@ -321,6 +323,31 @@ class _Handler(BaseHTTPRequestHandler):
                                     "points": pts})
         return self._json(404, {"error": "not found"})
 
+    def do_POST(self):
+        if not self._authorized():
+            return self._json(401, {"error": "unauthorized"})
+        if not self.server.limiter.allow(self.client_address[0]):
+            return self._json(429, {"error": "rate limited"})
+        if urllib.parse.urlparse(self.path).path != "/api/v1/action":
+            return self._json(404, {"error": "not found"})
+        length = int(self.headers.get("Content-Length", "0") or 0)
+        if length > self.server.config["max_body_bytes"]:
+            return self._json(413, {"error": "body too large"})
+        raw = self.rfile.read(length) if length else b""
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+            action = payload["action"]
+        except (ValueError, KeyError, TypeError):
+            return self._json(400, {"error": "invalid body"})
+        fn = self.server.actions.get(action)
+        if fn is None:
+            return self._json(403, {"error": "action not allowed"})
+        try:
+            output = fn(payload.get("args") or {}, self.server)
+        except Exception as exc:
+            return self._json(500, {"error": str(exc)})
+        return self._json(200, {"ok": True, "output": output})
+
     def log_message(self, fmt, *args):
         pass
 
@@ -334,8 +361,34 @@ class ServexServer(ThreadingHTTPServer):
         self.ring = ring
         self.sampler = sampler
         self.limiter = limiter
+        registry = builtin_actions()
+        self.actions = {name: registry[name]
+                        for name in config.get("actions", []) if name in registry}
 
 
 def make_server(config, ring, sampler):
     limiter = RateLimiter(config["rate_limit_per_min"])
     return ServexServer((config["bind"], config["port"]), config, ring, sampler, limiter)
+
+
+ACTION_NAME_RE = re.compile(r"^[a-z_]{1,32}$")
+SERVICE_NAME_RE = re.compile(r"^[A-Za-z0-9_.@-]{1,64}$")
+
+
+def _system_info(args, server):
+    snap = server.sampler.latest or {}
+    return "%s %s uptime=%ss cpu=%s%%" % (
+        snap.get("host"), snap.get("os"), snap.get("uptime_s"),
+        snap.get("cpu", {}).get("usage_pct"))
+
+
+def _service_restart(args, server):
+    name = (args or {}).get("service", "")
+    if not SERVICE_NAME_RE.match(name):
+        raise ValueError("invalid service name")
+    subprocess.run(["systemctl", "restart", name], check=True, timeout=30)
+    return "restarted %s" % name
+
+
+def builtin_actions():
+    return {"system_info": _system_info, "service_restart": _service_restart}
