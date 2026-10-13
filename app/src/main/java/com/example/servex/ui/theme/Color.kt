@@ -2,10 +2,15 @@ package com.example.servex.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
-
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+object ServexColors {
+    val background = Color(0xFF0F1115)
+    val surface = Color(0xFF1A1D23)
+    val surfaceVariant = Color(0xFF232732)
+    val onSurface = Color(0xFFE6E9EF)
+    val onSurfaceVariant = Color(0xFF8A9099)
+    val primary = Color(0xFF4C8DFF)
+    val success = Color(0xFF3DDC84)
+    val warning = Color(0xFFFFC93C)
+    val error = Color(0xFFFF5C5C)
+    val offline = Color(0xFF6B7280)
+}

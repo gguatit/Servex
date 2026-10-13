@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Servex</string>
+    <string name="status_normal">Normal</string>
+    <string name="status_warning">Warning</string>
+    <string name="status_error">Error</string>
+    <string name="status_offline">Offline</string>
 </resources>
