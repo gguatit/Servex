@@ -10,4 +10,15 @@
     <string name="action_settings">Settings</string>
 
     <string name="no_servers">No servers yet. Add one to get started.</string>
+
+    <string name="action_back">Back</string>
+    <string name="action_edit">Edit</string>
+
+    <string name="metric_cpu">CPU</string>
+    <string name="metric_memory">MEM</string>
+    <string name="metric_disk">DISK</string>
+    <string name="metric_network">NET</string>
+
+    <string name="section_cpu">CPU load</string>
+    <string name="section_disks">Disks</string>
 </resources>
