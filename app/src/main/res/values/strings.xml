@@ -21,4 +21,15 @@
 
     <string name="section_cpu">CPU load</string>
     <string name="section_disks">Disks</string>
+
+    <string name="title_edit_server">Server</string>
+    <string name="field_name">Name</string>
+    <string name="field_url">Base URL</string>
+    <string name="field_token">Token</string>
+    <string name="field_fingerprint">Certificate fingerprint (optional)</string>
+    <string name="field_poll">Poll interval (s)</string>
+    <string name="err_name">Enter a name</string>
+    <string name="err_url">Enter an http(s) URL</string>
+    <string name="action_test">Test connection</string>
+    <string name="action_save">Save</string>
 </resources>
