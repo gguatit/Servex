@@ -12,9 +12,30 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+/**
+ * Accepts a bare host, host:port, or a full http(s) URL.
+ * A missing scheme becomes http:// and a missing port becomes :8765.
+ * Returns null when the address cannot be used.
+ */
+fun normalizeBaseUrl(raw: String): String? {
+    val trimmed = raw.trim().trimEnd('/')
+    if (trimmed.isEmpty()) return null
+    val withScheme = when {
+        trimmed.startsWith("http://") || trimmed.startsWith("https://") -> trimmed
+        trimmed.contains("://") -> return null
+        else -> "http://$trimmed"
+    }
+    val authority = withScheme.substringAfter("://").substringBefore('/')
+    return when {
+        authority.contains(':') -> withScheme
+        withScheme.startsWith("http://") -> "$withScheme:8765"
+        else -> withScheme
+    }
+}
+
 fun validateServer(name: String, baseUrl: String): String? = when {
     name.isBlank() -> "err_name"
-    baseUrl.isBlank() || !(baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) -> "err_url"
+    normalizeBaseUrl(baseUrl) == null -> "err_url"
     else -> null
 }
 
@@ -80,7 +101,8 @@ class EditServerViewModel(
     }
 
     private fun EditUiState.toServer() = Server(
-        id = id, name = name.trim(), baseUrl = baseUrl.trim().trimEnd('/'),
+        id = id, name = name.trim(),
+        baseUrl = normalizeBaseUrl(baseUrl) ?: baseUrl.trim(),
         certFingerprint = certFingerprint.trim().ifBlank { null }, pollIntervalS = pollIntervalS,
     )
 }
