@@ -1115,12 +1115,15 @@ def _lan_addresses(port):
 
 
 def print_connection_info(config, show_token=False):
-    sys.stderr.write("servex-agent listening on %s:%d\n"
-                     % (config["bind"], config["port"]))
+    err = sys.stderr
+    if err is None:  # no console (e.g. started by the Windows service)
+        return
+    err.write("servex-agent listening on %s:%d\n"
+              % (config["bind"], config["port"]))
     for url in _lan_addresses(config["port"]):
-        sys.stderr.write("  %s\n" % url)
+        err.write("  %s\n" % url)
     if show_token:
-        sys.stderr.write("  Token %s\n" % config.get("token", ""))
+        err.write("  Token: %s\n" % config.get("token", ""))
 
 
 def init_config(path, port=None, bind=None):
@@ -1165,7 +1168,7 @@ def main(argv=None):
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ctx.load_cert_chain(config["tls"]["cert"], config["tls"]["key"])
         httpd.socket = ctx.wrap_socket(httpd.socket, server_side=True)
-    print_connection_info(config)
+    print_connection_info(config, show_token=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

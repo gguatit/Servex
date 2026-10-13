@@ -177,7 +177,7 @@ class TestConnectionInfo(unittest.TestCase):
         out = buf.getvalue()
         self.assertIn("servex-agent listening on 0.0.0.0:8765", out)
         self.assertIn("http://127.0.0.1:8765", out)
-        self.assertIn("Token xyz", out)
+        self.assertIn("Token: xyz", out)
 
 
 class TestDerived(unittest.TestCase):

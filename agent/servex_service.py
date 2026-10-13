@@ -83,9 +83,28 @@ if win32serviceutil is not None:
         def SvcDoRun(self):
             servicemanager.LogInfoMsg("Servex Agent starting")
             config = ensure_config()
+            try:
+                token = agent.load_config(config).get("token", "")
+            except Exception:
+                token = ""
+            servicemanager.LogInfoMsg("Servex Agent config: %s" % config)
+            if token:
+                servicemanager.LogInfoMsg("Servex Agent token: %s" % token)
+            # A service has no console, so give the child a real stdout/stderr
+            # (a log file) instead of None handles, which crash its logging.
+            log_path = os.path.join(DEFAULT_CONFIG_DIR, "servex-agent.log")
+            try:
+                log = open(log_path, "a", encoding="utf-8")
+            except Exception:
+                log = subprocess.DEVNULL
             self._proc = subprocess.Popen(
-                [sys.executable, "--run", "--config", config])
+                [sys.executable, "--run", "--config", config],
+                stdin=subprocess.DEVNULL, stdout=log, stderr=log)
             self._proc.wait()
+            try:
+                log.close()
+            except Exception:
+                pass
             servicemanager.LogInfoMsg("Servex Agent stopped")
 
 else:
