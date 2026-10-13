@@ -79,6 +79,7 @@ if [ ! -f /etc/servex/servex-agent.json ]; then
 fi
 systemctl daemon-reload || true
 systemctl enable servex-agent.service || true
+systemctl start servex-agent.service || true
 echo "Servex agent installed."
 echo "Edit /etc/servex/servex-agent.json, then: systemctl start servex-agent"
 if [ -f /etc/servex/servex-agent.json ]; then

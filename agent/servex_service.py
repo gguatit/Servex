@@ -106,6 +106,10 @@ def main(argv=None):
             raise RuntimeError(
                 "pywin32 is required for Windows service commands; "
                 "run: python -m pip install pywin32")
+        # Default to automatic start so the agent comes back after a reboot
+        # (pywin32 registers services as manual unless --startup is given).
+        if argv[0].lower() == "install" and "--startup" not in argv:
+            argv = argv + ["--startup", "auto"]
         win32serviceutil.HandleCommandLine(
             ServexAgentService, argv=[sys.argv[0]] + argv)
         return 0
