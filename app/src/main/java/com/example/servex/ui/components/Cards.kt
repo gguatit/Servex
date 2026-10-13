@@ -85,6 +85,28 @@ fun MetricRow(@DrawableRes iconRes: Int, @StringRes labelRes: Int, value: String
 }
 
 @Composable
+fun MetricRow(@DrawableRes iconRes: Int, label: String, value: String, modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            painterResource(iconRes),
+            contentDescription = null,
+            tint = ServexColors.onSurfaceVariant,
+            modifier = Modifier.size(20.dp),
+        )
+        Spacer(Modifier.width(10.dp))
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = ServexColors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.weight(1f))
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = ServexColors.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
 fun ActionButton(@DrawableRes iconRes: Int, @StringRes textRes: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
     OutlinedButton(onClick = onClick, modifier = modifier, shape = buttonShape) {
         Icon(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(18.dp))

@@ -27,6 +27,22 @@
 
     <string name="section_cpu">CPU load</string>
     <string name="section_disks">Disks</string>
+    <string name="section_memory_detail">Memory detail</string>
+    <string name="section_disk_io">Disk I/O</string>
+    <string name="section_processes">Top processes</string>
+    <string name="section_services">Services</string>
+    <string name="section_system">System</string>
+
+    <string name="metric_swap">Swap</string>
+    <string name="metric_cached">Cached</string>
+    <string name="metric_buffers">Buffers</string>
+    <string name="metric_read">Read</string>
+    <string name="metric_write">Write</string>
+    <string name="metric_kernel">Kernel</string>
+    <string name="metric_arch">Arch</string>
+    <string name="metric_users">Users</string>
+    <string name="metric_boot_time">Boot time</string>
+    <string name="services_none">No failed services</string>
 
     <string name="title_edit_server">Server</string>
     <string name="title_settings">Settings</string>

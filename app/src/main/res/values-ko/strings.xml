@@ -27,6 +27,22 @@
 
     <string name="section_cpu">CPU 부하</string>
     <string name="section_disks">디스크</string>
+    <string name="section_memory_detail">메모리 상세</string>
+    <string name="section_disk_io">디스크 I/O</string>
+    <string name="section_processes">상위 프로세스</string>
+    <string name="section_services">서비스</string>
+    <string name="section_system">시스템</string>
+
+    <string name="metric_swap">스왑</string>
+    <string name="metric_cached">캐시</string>
+    <string name="metric_buffers">버퍼</string>
+    <string name="metric_read">읽기</string>
+    <string name="metric_write">쓰기</string>
+    <string name="metric_kernel">커널</string>
+    <string name="metric_arch">아키텍처</string>
+    <string name="metric_users">사용자</string>
+    <string name="metric_boot_time">부팅 시각</string>
+    <string name="services_none">실패한 서비스 없음</string>
 
     <string name="title_edit_server">서버</string>
     <string name="title_settings">설정</string>

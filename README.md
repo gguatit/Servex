@@ -34,6 +34,28 @@ offline, and can raise threshold alerts and run allowlisted remote actions.
 
 ## Run the agent
 
+The agent runs on the server you want to monitor. Install it with a package,
+or run the plain script. Either way the client only needs the agent's URL and
+token.
+
+**Linux (deb):**
+
+```bash
+sudo dpkg -i servex-agent_1.1.0_all.deb
+# creates /etc/servex/servex-agent.json with a random token and prints it
+sudo systemctl start servex-agent
+```
+
+**Windows (exe)** — from an elevated prompt:
+
+```powershell
+ServexAgent.exe install
+ServexAgent.exe start
+# config: C:\ProgramData\Servex\servex-agent.json
+```
+
+**Plain script (any platform with Python 3.8+):**
+
 ```bash
 cp agent/servex-agent.json.example agent/servex-agent.json
 # edit the token in agent/servex-agent.json
@@ -41,8 +63,8 @@ python3 agent/servex-agent.py --config agent/servex-agent.json
 ```
 
 The agent listens on port 8765 by default. See [`docs/AGENT.md`](docs/AGENT.md)
-for configuration and [`agent/servex-agent.service`](agent/servex-agent.service)
-for a systemd unit.
+for configuration, the metrics fields, and install details. Builders live in
+[`packaging/`](packaging/) (`build_deb.py`, `windows/build_exe.py`).
 
 ## Build the app
 

@@ -33,7 +33,11 @@ import com.example.servex.ui.components.BigMetric
 import com.example.servex.ui.components.MetricRow
 import com.example.servex.ui.components.SectionHeader
 import com.example.servex.ui.components.StatusChip
+import com.example.servex.ui.format.formatBytes
+import com.example.servex.ui.format.formatRate
+import com.example.servex.ui.format.formatTimestamp
 import com.example.servex.ui.theme.ServexColors
+import java.util.Locale
 
 @Composable
 fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit, onEdit: (String) -> Unit) {
@@ -86,6 +90,53 @@ fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit, onEdit: (String
         SectionHeader(R.string.section_disks)
         m?.disks?.forEach { d ->
             MetricRow(R.drawable.ic_metric_disk, R.string.metric_disk, "${d.mount}  ${d.pct.toInt()}%")
+        }
+        val memInfo = m?.memory
+        if (memInfo != null && (memInfo.swapTotal != null || memInfo.cached != null || memInfo.buffers != null)) {
+            Spacer(Modifier.height(16.dp))
+            SectionHeader(R.string.section_memory_detail)
+            memInfo.swapTotal?.let { total ->
+                val used = memInfo.swapUsed ?: 0L
+                val pctText = memInfo.swapPct?.let { String.format(Locale.US, "%.1f%%", it) }
+                    ?: "${(if (total > 0) used * 100.0 / total else 0.0).toInt()}%"
+                MetricRow(R.drawable.ic_metric_memory, R.string.metric_swap, "${formatBytes(used)} / ${formatBytes(total)}  $pctText")
+            }
+            memInfo.cached?.let { MetricRow(R.drawable.ic_metric_memory, R.string.metric_cached, formatBytes(it)) }
+            memInfo.buffers?.let { MetricRow(R.drawable.ic_metric_memory, R.string.metric_buffers, formatBytes(it)) }
+        }
+        m?.diskIo?.let { io ->
+            Spacer(Modifier.height(16.dp))
+            SectionHeader(R.string.section_disk_io)
+            io.readBps?.let { MetricRow(R.drawable.ic_metric_disk, R.string.metric_read, formatRate(it)) }
+            io.writeBps?.let { MetricRow(R.drawable.ic_metric_disk, R.string.metric_write, formatRate(it)) }
+        }
+        val topProcs = m?.processes?.byCpu.orEmpty().take(5)
+        if (topProcs.isNotEmpty()) {
+            Spacer(Modifier.height(16.dp))
+            SectionHeader(R.string.section_processes)
+            topProcs.forEach { p ->
+                val cpu = p.cpuPct?.let { String.format(Locale.US, "%.1f%%", it) } ?: "-"
+                val memPct = p.memPct?.let { String.format(Locale.US, "%.1f%%", it) } ?: "-"
+                MetricRow(R.drawable.ic_metric_process, p.name ?: (p.pid?.toString() ?: ""), "$cpu  $memPct")
+            }
+        }
+        m?.services?.let { svc ->
+            Spacer(Modifier.height(16.dp))
+            SectionHeader(R.string.section_services)
+            if (svc.failed.isEmpty()) {
+                MetricRow(R.drawable.ic_metric_service, stringResource(R.string.services_none), "")
+            } else {
+                svc.failed.forEach { MetricRow(R.drawable.ic_metric_service, it, "") }
+            }
+        }
+        val hasSystem = m != null && (m.kernel != null || m.arch != null || m.users != null || m.bootTime != null)
+        if (hasSystem) {
+            Spacer(Modifier.height(16.dp))
+            SectionHeader(R.string.section_system)
+            m.kernel?.let { MetricRow(R.drawable.ic_metric_cpu, R.string.metric_kernel, it) }
+            m.arch?.let { MetricRow(R.drawable.ic_metric_cpu, R.string.metric_arch, it) }
+            m.users?.let { MetricRow(R.drawable.ic_metric_memory, R.string.metric_users, it.toString()) }
+            m.bootTime?.let { MetricRow(R.drawable.ic_metric_cpu, R.string.metric_boot_time, formatTimestamp(it)) }
         }
         Spacer(Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

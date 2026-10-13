@@ -1,6 +1,9 @@
 import importlib.util
+import io
 import json
 import os
+import shutil
+import tempfile
 import threading
 import time
 import unittest
@@ -78,6 +81,103 @@ class TestParsers(unittest.TestCase):
 
     def test_parse_proc_uptime(self):
         self.assertEqual(sa.parse_proc_uptime(self.UPTIME), 382100)
+
+
+class TestExtendedParsers(unittest.TestCase):
+    CORES = (
+        "cpu  100 2 50 1000 10 0 5 0 0 0\n"
+        "cpu0 50 1 25 500 5 0 2 0 0 0\n"
+        "cpu1 50 1 25 500 5 0 3 0 0 0\n"
+        "intr 123\n"
+    )
+
+    def test_parse_proc_stat_cores(self):
+        cores = sa.parse_proc_stat_cores(self.CORES)
+        self.assertEqual(len(cores), 2)
+        self.assertEqual(cores[0]["total"], 50 + 1 + 25 + 500 + 5 + 2)
+        self.assertEqual(cores[0]["idle"], 500 + 5)
+        self.assertEqual(cores[1]["total"], 50 + 1 + 25 + 500 + 5 + 3)
+
+    def test_parse_proc_stat_cores_empty(self):
+        self.assertEqual(sa.parse_proc_stat_cores("intr 1\n"), [])
+
+    MEM = (
+        "MemTotal:       16000000 kB\n"
+        "MemFree:         2000000 kB\n"
+        "MemAvailable:    8000000 kB\n"
+        "Buffers:          100000 kB\n"
+        "Cached:          4000000 kB\n"
+        "SwapTotal:       2000000 kB\n"
+        "SwapFree:         500000 kB\n"
+    )
+
+    def test_parse_meminfo_extras(self):
+        r = sa.parse_meminfo_extras(self.MEM)
+        self.assertEqual(r["swap_total"], 2000000 * 1024)
+        self.assertEqual(r["swap_used"], (2000000 - 500000) * 1024)
+        self.assertEqual(r["swap_pct"], 75.0)
+        self.assertEqual(r["cached"], 4000000 * 1024)
+        self.assertEqual(r["buffers"], 100000 * 1024)
+
+    DST = (
+        "   8       0 sda 100 0 2000 0 50 0 1000 0 0 0 0\n"
+        "   8       1 sda1 60 0 1200 0 30 0 600 0 0 0 0\n"
+    )
+
+    def test_parse_diskstats(self):
+        r = sa.parse_diskstats(self.DST)
+        self.assertEqual(r["read_total"], (2000 + 1200) * 512)
+        self.assertEqual(r["write_total"], (1000 + 600) * 512)
+
+    NETX = (
+        "Inter-|   Receive                                                |  Transmit\n"
+        " face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed\n"
+        "    lo:    1000       10    0    0    0     0          0         0     1000       10    0    0    0     0       0          0\n"
+        "  eth0:  5000000     4000    3    7    0     0          0         0  2000000     3000    9   11    0     0       0          0\n"
+    )
+
+    def test_parse_net_dev_extras(self):
+        r = sa.parse_net_dev_extras(self.NETX)
+        self.assertNotIn("lo", r)
+        self.assertEqual(r["eth0"]["rx_errs"], 3)
+        self.assertEqual(r["eth0"]["rx_drops"], 7)
+        self.assertEqual(r["eth0"]["tx_errs"], 9)
+        self.assertEqual(r["eth0"]["tx_drops"], 11)
+
+
+class TestConnectionInfo(unittest.TestCase):
+    def test_lan_addresses_has_loopback_first(self):
+        urls = sa._lan_addresses(1234)
+        self.assertEqual(urls[0], "http://127.0.0.1:1234")
+        self.assertIn("http://127.0.0.1:1234", urls)
+
+    def test_init_config_generates_token_and_no_overwrite(self):
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d, True)
+        path = os.path.join(d, "servex-agent.json")
+        cfg = sa.init_config(path, port=9999)
+        self.assertTrue(cfg["token"])
+        self.assertEqual(cfg["port"], 9999)
+        with open(path, "r", encoding="utf-8") as fh:
+            saved = json.load(fh)
+        self.assertEqual(saved["token"], cfg["token"])
+        again = sa.init_config(path, port=1111)
+        self.assertEqual(again["port"], 9999)
+        self.assertEqual(again["token"], cfg["token"])
+
+    def test_print_connection_info_smoke(self):
+        buf = io.StringIO()
+        old = sa.sys.stderr
+        sa.sys.stderr = buf
+        try:
+            sa.print_connection_info({"bind": "0.0.0.0", "port": 8765, "token": "xyz"},
+                                     show_token=True)
+        finally:
+            sa.sys.stderr = old
+        out = buf.getvalue()
+        self.assertIn("servex-agent listening on 0.0.0.0:8765", out)
+        self.assertIn("http://127.0.0.1:8765", out)
+        self.assertIn("Token xyz", out)
 
 
 class TestDerived(unittest.TestCase):
@@ -163,7 +263,7 @@ class TestRingSamplerHistory(unittest.TestCase):
 
 
 def _boot(token="secret", **cfg):
-    config = sa.load_config(overrides={"token": token, **cfg})
+    config = sa.load_config(overrides={"token": token, "port": 0, **cfg})
     ring = sa.Ring(config["history_size"])
     sampler = sa.Sampler(ring, sa.LocalFS(), config["sample_interval"], config["disk_mounts"])
     snap = {"ts": 1, "cpu": {"usage_pct": 10.0}, "memory": {"pct": 20.0},

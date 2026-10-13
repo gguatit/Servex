@@ -3,12 +3,17 @@ package com.example.servex.data
 import com.example.servex.domain.model.ActionResult
 import com.example.servex.domain.model.CpuInfo
 import com.example.servex.domain.model.DiskInfo
+import com.example.servex.domain.model.DiskIo
+import com.example.servex.domain.model.DockerInfo
 import com.example.servex.domain.model.HistoryPoint
 import com.example.servex.domain.model.HistoryResponse
 import com.example.servex.domain.model.MemoryInfo
 import com.example.servex.domain.model.MetricsSnapshot
 import com.example.servex.domain.model.NetworkInfo
+import com.example.servex.domain.model.ProcessInfo
+import com.example.servex.domain.model.ProcessList
 import com.example.servex.domain.model.Server
+import com.example.servex.domain.model.ServicesInfo
 import kotlin.math.sin
 
 /**
@@ -51,20 +56,76 @@ object DemoData {
         val mem = (s.mem + 4.0 * wobble).coerceIn(0.0, 100.0)
         val totalMem = 16L * 1024 * 1024 * 1024
         val usedMem = (totalMem * (mem / 100.0)).toLong()
+        val swapTotal = 4L * 1024 * 1024 * 1024
+        val swapUsed = (swapTotal * (mem / 250.0)).toLong()
         val diskTotal = 512L * 1024 * 1024 * 1024
         val dataPct = (s.disk * 0.8).coerceIn(0.0, 100.0)
+        val perCore = (0 until 8).map { i ->
+            (cpu + 8.0 * sin(nowMs / 1000.0 / 12.0 + i) - i * 0.5).coerceIn(0.0, 100.0)
+        }
+        val topCpu = listOf(
+            ProcessInfo(4211, "nginx", cpu * 0.35, 1.2),
+            ProcessInfo(8823, "postgres", cpu * 0.22, 8.4),
+            ProcessInfo(1204, "dockerd", cpu * 0.14, 2.1),
+            ProcessInfo(3390, "python3", cpu * 0.09, 3.7),
+            ProcessInfo(5512, "systemd-journal", cpu * 0.05, 0.6),
+        )
+        val topMem = listOf(
+            ProcessInfo(8823, "postgres", cpu * 0.22, 8.4),
+            ProcessInfo(3390, "python3", cpu * 0.09, 3.7),
+            ProcessInfo(1204, "dockerd", cpu * 0.14, 2.1),
+            ProcessInfo(4211, "nginx", cpu * 0.35, 1.2),
+            ProcessInfo(5512, "systemd-journal", cpu * 0.05, 0.6),
+        )
+        val bootTime = nowMs / 1000 - s.uptime
         return MetricsSnapshot(
             ts = nowMs / 1000,
             host = s.host,
             os = s.os,
             uptimeS = s.uptime,
-            cpu = CpuInfo(cpu, 8, cpu / 12.0, cpu / 16.0, cpu / 20.0),
-            memory = MemoryInfo(totalMem, usedMem, totalMem - usedMem, mem),
+            cpu = CpuInfo(
+                usagePct = cpu,
+                cores = 8,
+                load1 = cpu / 12.0,
+                load5 = cpu / 16.0,
+                load15 = cpu / 20.0,
+                threads = 16,
+                model = "AMD Ryzen 7 5700X",
+                perCore = perCore,
+                tempC = 38.0 + cpu * 0.35,
+            ),
+            memory = MemoryInfo(
+                total = totalMem,
+                used = usedMem,
+                available = totalMem - usedMem,
+                pct = mem,
+                swapTotal = swapTotal,
+                swapUsed = swapUsed,
+                swapPct = swapUsed * 100.0 / swapTotal,
+                cached = totalMem / 4,
+                buffers = totalMem / 32,
+            ),
             disks = listOf(
                 DiskInfo("/", diskTotal, (diskTotal * (s.disk / 100.0)).toLong(), s.disk),
                 DiskInfo("/data", diskTotal * 2, (diskTotal * 2 * (dataPct / 100.0)).toLong(), dataPct),
             ),
-            network = listOf(NetworkInfo("eth0", s.rx, s.tx, s.rx * 3600, s.tx * 3600)),
+            network = listOf(
+                NetworkInfo("eth0", s.rx, s.tx, s.rx * 3600, s.tx * 3600, rxErrs = 0, txErrs = 0, rxDrops = 12, txDrops = 3),
+            ),
+            kernel = "6.8.0-45-generic",
+            arch = "x86_64",
+            bootTime = bootTime,
+            users = 2,
+            diskIo = DiskIo(
+                readTotal = 84_120_000_000,
+                writeTotal = 41_300_000_000,
+                readBps = (s.rx * 0.4).toLong(),
+                writeBps = (s.tx * 0.6).toLong(),
+            ),
+            processes = ProcessList(byCpu = topCpu, byMem = topMem),
+            services = ServicesInfo(failed = listOf("apt-daily.service"), total = 142),
+            gpu = emptyList(),
+            docker = DockerInfo(running = 3, stopped = 1, total = 4),
         )
     }
 
