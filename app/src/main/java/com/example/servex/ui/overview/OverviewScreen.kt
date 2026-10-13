@@ -1,0 +1,93 @@
+package com.example.servex.ui.overview
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.servex.R
+import com.example.servex.domain.ServerStatus
+import com.example.servex.ui.components.ServerCard
+import com.example.servex.ui.statusStyle
+import com.example.servex.ui.theme.ServexColors
+
+@Composable
+private fun SummaryChip(status: ServerStatus, count: Int, labelRes: Int) {
+    val style = statusStyle(status)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            painterResource(style.iconRes), contentDescription = null,
+            tint = style.color, modifier = Modifier.size(16.dp),
+        )
+        Spacer(Modifier.width(4.dp))
+        Text("$count ${stringResource(labelRes)}", style = MaterialTheme.typography.labelSmall, color = style.color)
+    }
+}
+
+@Composable
+fun OverviewScreen(
+    viewModel: OverviewViewModel,
+    onOpenServer: (String) -> Unit,
+    onOpenSettings: () -> Unit,
+    onAddServer: () -> Unit,
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    Column(Modifier.fillMaxSize().padding(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge, color = ServexColors.onSurface)
+            Spacer(Modifier.weight(1f))
+            IconButton(onClick = { viewModel.refresh() }) {
+                Icon(painterResource(R.drawable.ic_action_refresh), contentDescription = stringResource(R.string.action_refresh), tint = ServexColors.onSurfaceVariant)
+            }
+            IconButton(onClick = onAddServer) {
+                Icon(painterResource(R.drawable.ic_action_add), contentDescription = stringResource(R.string.action_add), tint = ServexColors.onSurfaceVariant)
+            }
+            IconButton(onClick = onOpenSettings) {
+                Icon(painterResource(R.drawable.ic_action_settings), contentDescription = stringResource(R.string.action_settings), tint = ServexColors.onSurfaceVariant)
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(vertical = 8.dp)) {
+            SummaryChip(ServerStatus.NORMAL, state.summary.normal, R.string.status_normal)
+            SummaryChip(ServerStatus.WARNING, state.summary.warning, R.string.status_warning)
+            SummaryChip(ServerStatus.ERROR, state.summary.error, R.string.status_error)
+            SummaryChip(ServerStatus.OFFLINE, state.summary.offline, R.string.status_offline)
+        }
+        Spacer(Modifier.height(8.dp))
+        if (state.rows.isEmpty()) {
+            Text(
+                stringResource(R.string.no_servers),
+                style = MaterialTheme.typography.bodyMedium, color = ServexColors.onSurfaceVariant,
+            )
+        } else {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                items(state.rows, key = { it.server.id }) { row ->
+                    ServerCard(
+                        name = row.server.name,
+                        subtitle = row.server.baseUrl,
+                        status = row.status,
+                        spark = row.spark,
+                        onClick = { onOpenServer(row.server.id) },
+                    )
+                }
+            }
+        }
+    }
+}
