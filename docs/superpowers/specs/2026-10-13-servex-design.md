@@ -324,7 +324,7 @@ enforces the "never distinguish by color alone" rule at the component level.
 - Agent: simple rate limiting and a maximum request body size; bind address is
   configurable (default `0.0.0.0` with token; reverse proxy recommended).
 - App stores tokens in `EncryptedSharedPreferences`.
-- `docs/SECURITY.md` documents the threat model and hardening recommendations.
+- `SECURITY.md` documents the threat model and hardening recommendations.
 
 ## 12. Agent Reference Implementation
 
@@ -347,7 +347,8 @@ enforces the "never distinguish by color alone" rule at the component level.
 Servex/
 ├─ app/          Android module :app (existing)
 ├─ agent/        Python agent + systemd unit + tests
-├─ docs/         README.md, API.md, AGENT.md, SECURITY.md
+├─ docs/         README.md, API.md, AGENT.md
+├─ SECURITY.md   Threat model and reporting
 ├─ LICENSE       GPL-3.0
 └─ .gitignore
 ```
