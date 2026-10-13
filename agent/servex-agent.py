@@ -27,3 +27,49 @@ def load_config(path=None, overrides=None):
     if not cfg.get("token"):
         cfg["token"] = os.environ.get("SERVEX_TOKEN", "")
     return cfg
+
+
+def parse_proc_stat(text):
+    for line in text.splitlines():
+        if line.startswith("cpu "):
+            nums = [int(x) for x in line.split()[1:]]
+            idle = nums[3] + (nums[4] if len(nums) > 4 else 0)
+            return {"idle": idle, "total": sum(nums)}
+    raise ValueError("no aggregate cpu line in /proc/stat")
+
+
+def parse_meminfo(text):
+    vals = {}
+    for line in text.splitlines():
+        if ":" not in line:
+            continue
+        key, raw = line.split(":", 1)
+        parts = raw.strip().split()
+        if parts:
+            try:
+                vals[key] = int(parts[0]) * 1024  # kB -> bytes
+            except ValueError:
+                pass
+    total = vals.get("MemTotal", 0)
+    available = vals.get("MemAvailable", vals.get("MemFree", 0))
+    used = max(0, total - available)
+    pct = round(used / total * 100, 1) if total else 0.0
+    return {"total": total, "used": used, "available": available, "pct": pct}
+
+
+def parse_net_dev(text):
+    out = {}
+    for line in text.splitlines()[2:]:
+        if ":" not in line:
+            continue
+        iface, rest = line.split(":", 1)
+        iface = iface.strip()
+        fields = rest.split()
+        if iface == "lo" or len(fields) < 9:
+            continue
+        out[iface] = {"rx_total": int(fields[0]), "tx_total": int(fields[8])}
+    return out
+
+
+def parse_proc_uptime(text):
+    return int(float(text.split()[0]))
