@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Servex reference agent — stdlib only."""
+import hmac
 import json
 import os
 import threading
 import time
+import urllib.parse
 from collections import deque
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 DEFAULTS = {
     "bind": "0.0.0.0",
@@ -240,3 +243,99 @@ def history_points(snapshots, metric, points):
     if get is None:
         return []
     return [{"t": s["ts"], "v": round(float(get(s)), 1)} for s in snapshots[-points:]]
+
+
+METRICS_KEYS = ("ts", "host", "os", "uptime_s", "cpu", "memory", "disks", "network")
+
+
+def token_ok(provided, expected):
+    if not provided or not expected:
+        return False
+    return hmac.compare_digest(provided, expected)
+
+
+def summary_from(snapshot):
+    if not snapshot:
+        return {"host": None, "os": None, "uptime_s": 0, "ts": 0}
+    return {k: snapshot.get(k) for k in ("host", "os", "uptime_s", "ts")}
+
+
+class RateLimiter:
+    """ponytail: fixed-window per-IP counter; swap for a token bucket if needed."""
+
+    def __init__(self, per_min):
+        self.per_min = per_min
+        self._hits = {}
+        self._lock = threading.Lock()
+
+    def allow(self, ip):
+        now = time.time()
+        with self._lock:
+            window = self._hits.setdefault(ip, [])
+            while window and now - window[0] > 60:
+                window.pop(0)
+            if len(window) >= self.per_min:
+                return False
+            window.append(now)
+            return True
+
+
+class _Handler(BaseHTTPRequestHandler):
+    server_version = "servex-agent/1.0"
+
+    def _json(self, code, payload):
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _authorized(self):
+        header = self.headers.get("Authorization", "")
+        provided = header[7:] if header.startswith("Bearer ") else ""
+        return token_ok(provided, self.server.config["token"])
+
+    def do_GET(self):
+        if not self._authorized():
+            return self._json(401, {"error": "unauthorized"})
+        if not self.server.limiter.allow(self.client_address[0]):
+            return self._json(429, {"error": "rate limited"})
+        parsed = urllib.parse.urlparse(self.path)
+        path, query = parsed.path, urllib.parse.parse_qs(parsed.query)
+        snap = self.server.sampler.latest
+        if path == "/api/v1/health":
+            return self._json(200, {"ok": True})
+        if path == "/api/v1/summary":
+            return self._json(200, summary_from(snap))
+        if path == "/api/v1/metrics":
+            if snap is None:
+                return self._json(503, {"error": "no sample yet"})
+            return self._json(200, snap)
+        if path == "/api/v1/history":
+            metric = query.get("metric", ["cpu"])[0]
+            points = int(query.get("points", ["60"])[0] or 60)
+            pts = history_points(self.server.ring.snapshot(), metric, points)
+            return self._json(200, {"metric": metric,
+                                    "interval_s": self.server.config["sample_interval"],
+                                    "points": pts})
+        return self._json(404, {"error": "not found"})
+
+    def log_message(self, fmt, *args):
+        pass
+
+
+class ServexServer(ThreadingHTTPServer):
+    daemon_threads = True
+
+    def __init__(self, addr, config, ring, sampler, limiter):
+        super().__init__(addr, _Handler)
+        self.config = config
+        self.ring = ring
+        self.sampler = sampler
+        self.limiter = limiter
+
+
+def make_server(config, ring, sampler):
+    limiter = RateLimiter(config["rate_limit_per_min"])
+    return ServexServer((config["bind"], config["port"]), config, ring, sampler, limiter)

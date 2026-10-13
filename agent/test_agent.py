@@ -1,10 +1,16 @@
 import importlib.util
+import json
 import os
+import threading
+import time
 import unittest
+import urllib.error
+import urllib.request
 
 _SPEC = importlib.util.spec_from_file_location(
     "servex_agent", os.path.join(os.path.dirname(__file__), "servex-agent.py")
 )
+assert _SPEC is not None and _SPEC.loader is not None
 sa = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(sa)
 
@@ -154,6 +160,73 @@ class TestRingSamplerHistory(unittest.TestCase):
 
     def test_history_unknown_metric_is_empty(self):
         self.assertEqual(sa.history_points(self.SNAPS, "bogus", 60), [])
+
+
+def _boot(token="secret", **cfg):
+    config = sa.load_config(overrides={"token": token, **cfg})
+    ring = sa.Ring(config["history_size"])
+    sampler = sa.Sampler(ring, sa.LocalFS(), config["sample_interval"], config["disk_mounts"])
+    snap = {"ts": 1, "cpu": {"usage_pct": 10.0}, "memory": {"pct": 20.0},
+            "disks": [{"pct": 30.0}], "network": [{"rx_bps": 1, "tx_bps": 1}],
+            "host": "h", "os": "Linux", "uptime_s": 5}
+    ring.append(snap)
+    sampler.latest = snap
+    httpd = sa.make_server(config, ring, sampler)
+    t = threading.Thread(target=httpd.serve_forever, daemon=True)
+    t.start()
+    time.sleep(0.05)
+    return httpd, httpd.server_address[1]
+
+
+def _get(port, path, token: str | None = "secret"):
+    req = urllib.request.Request("http://127.0.0.1:%d%s" % (port, path))
+    if token is not None:
+        req.add_header("Authorization", "Bearer " + token)
+    try:
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            return resp.status, json.loads(resp.read())
+    except urllib.error.HTTPError as e:
+        return e.code, json.loads(e.read())
+
+
+class TestHttp(unittest.TestCase):
+    def test_token_ok_constant_time(self):
+        self.assertTrue(sa.token_ok("abc", "abc"))
+        self.assertFalse(sa.token_ok("abc", "abd"))
+        self.assertFalse(sa.token_ok("", ""))
+
+    def test_health_requires_token(self):
+        httpd, port = _boot()
+        self.addCleanup(httpd.server_close); self.addCleanup(httpd.shutdown)
+        code, body = _get(port, "/api/v1/health", token=None)
+        self.assertEqual(code, 401)
+        self.assertIn("error", body)
+
+    def test_bad_token_401(self):
+        httpd, port = _boot()
+        self.addCleanup(httpd.server_close); self.addCleanup(httpd.shutdown)
+        self.assertEqual(_get(port, "/api/v1/metrics", token="wrong")[0], 401)
+
+    def test_metrics_ok(self):
+        httpd, port = _boot()
+        self.addCleanup(httpd.server_close); self.addCleanup(httpd.shutdown)
+        code, body = _get(port, "/api/v1/metrics")
+        self.assertEqual(code, 200)
+        self.assertIn("cpu", body)
+        self.assertEqual(body["cpu"]["usage_pct"], 10.0)
+
+    def test_history_metric_param(self):
+        httpd, port = _boot()
+        self.addCleanup(httpd.server_close); self.addCleanup(httpd.shutdown)
+        code, body = _get(port, "/api/v1/history?metric=cpu&points=10")
+        self.assertEqual(code, 200)
+        self.assertEqual(body["metric"], "cpu")
+        self.assertEqual(body["points"][0]["v"], 10.0)
+
+    def test_unknown_route_404(self):
+        httpd, port = _boot()
+        self.addCleanup(httpd.server_close); self.addCleanup(httpd.shutdown)
+        self.assertEqual(_get(port, "/api/v1/nope")[0], 404)
 
 
 if __name__ == "__main__":
