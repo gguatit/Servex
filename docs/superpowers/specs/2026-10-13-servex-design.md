@@ -200,7 +200,7 @@ Purpose: overall status first, then server selection.
 
 ```
 +------------------------------+
-| Servex                 ⟳  ⚙ |
+| Servex    [refresh] [settings]|
 +------------------------------+
 | 3 normal  1 warning  1 offline|   summary strip
 +------------------------------+
@@ -274,11 +274,26 @@ alerts on/off, about + license (GPL-3.0).
   secondary).
 - Spacing scale: 4 / 8 / 12 / 16 / 24 dp.
 - Corner radius: cards 12dp, buttons 10dp. Icons 20/24dp.
-- Icons: Material Symbols Outline. Status: `check_circle` / `warning` /
-  `error` / `cloud_off`. Metrics: `memory` (CPU) / `ram` (MEM) /
-  `hard_drive` (DISK) / `swap_horiz` (NET).
 
-### 8.3 Status representation
+### 8.3 Iconography
+
+- **All icons are hand-authored vector drawables** (Android XML
+  `VectorDrawable`) under `res/drawable/`, drawn on a single 24x24dp grid with
+  a uniform 2dp stroke and rounded caps/joins. No icon font, no third-party
+  icon pack, no image assets.
+- **No emoji anywhere** — not in the UI, notifications, docs, commit messages,
+  or store listing. Icons are always vectors or plain text labels.
+- Status icons: check-circle (normal), warning-triangle (warning), error-circle
+  (error), cloud-off (offline) — each hand-drawn.
+- Metric icons: cpu (chip), memory (RAM bars), disk (stacked drives),
+  network (bidirectional arrows) — each hand-drawn.
+- UI action glyphs (refresh, settings, back, add, delete, edit) are drawn the
+  same way; the ASCII wireframes in Section 7 use bracketed text
+  (`[refresh]`, `[settings]`) only as placeholders for these vector icons.
+- The launcher icon is also a custom vector adaptive icon (foreground +
+  background layers), not a template asset.
+
+### 8.4 Status representation
 
 A `StatusChip` component always renders **color + icon + text** together. This
 enforces the "never distinguish by color alone" rule at the component level.
