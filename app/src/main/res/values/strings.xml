@@ -38,4 +38,10 @@
     <string name="field_critical">Critical threshold (%)</string>
     <string name="field_alerts">Background alerts</string>
     <string name="about_license">Servex 1.0 - GPL-3.0</string>
+
+    <string name="action_restart_service">Restart service</string>
+    <string name="field_service">Service name</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="confirm_restart">Restart a service on %1$s?</string>
 </resources>

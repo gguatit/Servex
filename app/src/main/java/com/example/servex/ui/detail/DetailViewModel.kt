@@ -75,6 +75,14 @@ class DetailViewModel(
         state.update { it.copy(history = map) }
     }
 
+    fun runAction(server: Server, action: String, args: Map<String, String>) =
+        viewModelScope.launch {
+            repository.runAction(server, action, args).fold(
+                onSuccess = { r -> state.update { it.copy(error = r.output ?: "ok") } },
+                onFailure = { e -> state.update { it.copy(error = e.message) } },
+            )
+        }
+
     override fun onCleared() {
         loop?.cancel()
         super.onCleared()

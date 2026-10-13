@@ -16,6 +16,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -25,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.servex.R
 import com.example.servex.ui.charts.LineChart
+import com.example.servex.ui.components.ActionButton
 import com.example.servex.ui.components.BigMetric
 import com.example.servex.ui.components.MetricRow
 import com.example.servex.ui.components.SectionHeader
@@ -35,6 +39,7 @@ import com.example.servex.ui.theme.ServexColors
 fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit, onEdit: (String) -> Unit) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val m = state.metrics
+    var dialogFor by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
@@ -78,6 +83,23 @@ fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit, onEdit: (String
         SectionHeader(R.string.section_disks)
         m?.disks?.forEach { d ->
             MetricRow(R.drawable.ic_metric_disk, R.string.metric_disk, "${d.mount}  ${d.pct.toInt()}%")
+        }
+        Spacer(Modifier.height(16.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ActionButton(
+                iconRes = R.drawable.ic_action_refresh,
+                textRes = R.string.action_restart_service,
+                onClick = { state.server?.let { dialogFor = it.name } },
+            )
+        }
+        dialogFor?.let { name ->
+            ActionDialog(
+                serverName = name,
+                onDismiss = { dialogFor = null },
+                onConfirm = { action, args ->
+                    state.server?.let { viewModel.runAction(it, action, args) }
+                },
+            )
         }
     }
 }
