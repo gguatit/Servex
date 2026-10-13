@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val appVersion = "1.0"
+
 android {
     namespace = "com.example.servex"
     compileSdk {
@@ -15,7 +17,7 @@ android {
         minSdk = 36
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0"
+        versionName = appVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -34,6 +36,16 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val version = appVersion
+        val type = variant.buildType ?: "release"
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("Servex-$version-$type.apk")
+        }
     }
 }
 
