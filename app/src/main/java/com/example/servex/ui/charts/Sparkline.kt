@@ -11,8 +11,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun Sparkline(values: List<Float>, color: Color, modifier: Modifier = Modifier) {
+    val series = rememberAnimatedSeries(values)
     Canvas(modifier) {
-        val pts = chartPoints(values, size.width, size.height, 2f)
+        val pts = chartPoints(series, size.width, size.height, 2f)
         if (pts.size < 2) return@Canvas
         val path = Path().apply {
             moveTo(pts.first().first, pts.first().second)
