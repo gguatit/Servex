@@ -41,10 +41,8 @@ android {
 
 androidComponents {
     onVariants { variant ->
-        val version = appVersion
-        val type = variant.buildType ?: "release"
         variant.outputs.forEach { output ->
-            output.outputFileName.set("Servex-$version-$type.apk")
+            output.outputFileName.set("Servex-$appVersion.apk")
         }
     }
 }
