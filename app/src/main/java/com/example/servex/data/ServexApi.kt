@@ -20,25 +20,27 @@ object HttpClients {
         .callTimeout(8, TimeUnit.SECONDS)
         .build()
 
-    fun forServer(server: Server): OkHttpClient {
+    fun forServer(server: Server, base: OkHttpClient = shared): OkHttpClient {
         val fp = server.certFingerprint
-        if (fp.isNullOrBlank()) return shared
+        if (fp.isNullOrBlank()) return base
         val host = server.baseUrl.removePrefix("https://").removePrefix("http://")
             .substringBefore('/').substringBefore(':')
         val pinner = CertificatePinner.Builder().add(host, "sha256/$fp").build()
-        return shared.newBuilder().certificatePinner(pinner).build()
+        return base.newBuilder().certificatePinner(pinner).build()
     }
 }
 
 class ServexApi(private val client: OkHttpClient) : ServexApiContract {
     private val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
 
+    private fun clientFor(server: Server): OkHttpClient = HttpClients.forServer(server, client)
+
     private suspend fun get(server: Server, token: String, path: String): String = withContext(Dispatchers.IO) {
         val req = Request.Builder()
             .url(server.baseUrl.trimEnd('/') + path)
             .header("Authorization", "Bearer $token")
             .get().build()
-        client.newCall(req).execute().use { resp ->
+        clientFor(server).newCall(req).execute().use { resp ->
             val body = resp.body?.string().orEmpty()
             if (!resp.isSuccessful) throw ApiException(resp.code, body.ifBlank { resp.message })
             body
@@ -65,7 +67,7 @@ class ServexApi(private val client: OkHttpClient) : ServexApiContract {
                 .header("Authorization", "Bearer $token")
                 .post(payload.toRequestBody("application/json".toMediaType()))
                 .build()
-            client.newCall(req).execute().use { resp ->
+            clientFor(server).newCall(req).execute().use { resp ->
                 val body = resp.body?.string().orEmpty()
                 if (!resp.isSuccessful) throw ApiException(resp.code, body.ifBlank { resp.message })
                 json.decodeFromString(body)

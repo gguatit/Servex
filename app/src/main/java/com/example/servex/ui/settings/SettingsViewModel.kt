@@ -32,4 +32,6 @@ class SettingsViewModel(
         apply { it.copy(alertsEnabled = v) }
         AlertScheduler.schedule(context, v)
     }
+
+    fun setDemo(v: Boolean) = apply { it.copy(demoMode = v) }
 }

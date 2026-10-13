@@ -25,13 +25,13 @@ data class DetailUiState(
     val status: ServerStatus = ServerStatus.OFFLINE,
     val metrics: MetricsSnapshot? = null,
     val error: String? = null,
+    val actionResult: String? = null,
     val history: Map<String, List<Float>> = emptyMap(),
 )
 
 class DetailViewModel(
     private val repository: ServerRepository,
     private val serverId: String,
-    private val refreshIntervalS: Int,
 ) : ViewModel() {
     private val state = MutableStateFlow(DetailUiState())
     val uiState: StateFlow<DetailUiState> = state.asStateFlow()
@@ -78,10 +78,12 @@ class DetailViewModel(
     fun runAction(server: Server, action: String, args: Map<String, String>) =
         viewModelScope.launch {
             repository.runAction(server, action, args).fold(
-                onSuccess = { r -> state.update { it.copy(error = r.output ?: "ok") } },
-                onFailure = { e -> state.update { it.copy(error = e.message) } },
+                onSuccess = { r -> state.update { it.copy(actionResult = r.output ?: "ok") } },
+                onFailure = { e -> state.update { it.copy(actionResult = e.message) } },
             )
         }
+
+    fun clearActionResult() = state.update { it.copy(actionResult = null) }
 
     override fun onCleared() {
         loop?.cancel()

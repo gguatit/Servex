@@ -9,9 +9,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.servex.di.AppContainer
+import com.example.servex.ui.DetailVmFactory
+import com.example.servex.ui.EditVmFactory
 import com.example.servex.ui.VmFactory
 import com.example.servex.ui.detail.DetailScreen
+import com.example.servex.ui.detail.DetailViewModel
 import com.example.servex.ui.edit.EditServerScreen
+import com.example.servex.ui.edit.EditServerViewModel
 import com.example.servex.ui.overview.OverviewScreen
 import com.example.servex.ui.overview.OverviewViewModel
 import com.example.servex.ui.settings.SettingsScreen
@@ -40,10 +44,14 @@ fun ServexNavHost(container: AppContainer, modifier: Modifier = Modifier) {
                 onAddServer = { nav.navigate(Routes.edit(null)) },
             )
         }
-        composable(Routes.DETAIL, arguments = listOf(navArgument("serverId") { type = NavType.StringType })) { entry ->
+        composable(
+            Routes.DETAIL,
+            arguments = listOf(navArgument("serverId") { type = NavType.StringType }),
+        ) { entry ->
             val id = entry.arguments?.getString("serverId").orEmpty()
+            val vm: DetailViewModel = viewModel(factory = DetailVmFactory(container, id))
             DetailScreen(
-                viewModel = factory.detail(id, 5),
+                viewModel = vm,
                 onBack = { nav.popBackStack() },
                 onEdit = { nav.navigate(Routes.edit(it)) },
             )
@@ -53,7 +61,8 @@ fun ServexNavHost(container: AppContainer, modifier: Modifier = Modifier) {
             arguments = listOf(navArgument("serverId") { type = NavType.StringType; defaultValue = "" }),
         ) { entry ->
             val id = entry.arguments?.getString("serverId").orEmpty().ifBlank { null }
-            EditServerScreen(viewModel = factory.edit(id), onBack = { nav.popBackStack() })
+            val vm: EditServerViewModel = viewModel(factory = EditVmFactory(container, id))
+            EditServerScreen(viewModel = vm, onBack = { nav.popBackStack() })
         }
         composable(Routes.SETTINGS) {
             val vm: SettingsViewModel = viewModel(factory = factory)

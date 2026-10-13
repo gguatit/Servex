@@ -8,6 +8,7 @@ import com.example.servex.ui.edit.EditServerViewModel
 import com.example.servex.ui.overview.OverviewViewModel
 import com.example.servex.ui.settings.SettingsViewModel
 
+/** Factory for the ViewModels that need no navigation arguments. */
 class VmFactory(private val container: AppContainer) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
@@ -17,10 +18,32 @@ class VmFactory(private val container: AppContainer) : ViewModelProvider.Factory
             SettingsViewModel(container.repository, container.appContext) as T
         else -> throw IllegalArgumentException("Unknown ViewModel ${modelClass.name}")
     }
+}
 
-    fun detail(serverId: String, refreshIntervalS: Int): DetailViewModel =
-        DetailViewModel(container.repository, serverId, refreshIntervalS)
+/** Factory for a single server-detail screen; scoped to that nav entry. */
+class DetailVmFactory(
+    private val container: AppContainer,
+    private val serverId: String,
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
+            return DetailViewModel(container.repository, serverId) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel ${modelClass.name}")
+    }
+}
 
-    fun edit(serverId: String?): EditServerViewModel =
-        EditServerViewModel(container.repository, serverId)
+/** Factory for the add/edit screen; scoped to that nav entry. */
+class EditVmFactory(
+    private val container: AppContainer,
+    private val serverId: String?,
+) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(EditServerViewModel::class.java)) {
+            return EditServerViewModel(container.repository, serverId) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel ${modelClass.name}")
+    }
 }

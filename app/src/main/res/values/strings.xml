@@ -46,4 +46,9 @@
 
     <string name="confirm_restart">Restart a service on %1$s?</string>
     <string name="about_license">Servex 1.0 - GPL-3.0</string>
+
+    <string name="field_demo">Demo mode</string>
+    <string name="demo_try">Try demo mode</string>
+    <string name="demo_note">Sample servers and metrics. No real server is contacted.</string>
+    <string name="demo_badge">DEMO</string>
 </resources>

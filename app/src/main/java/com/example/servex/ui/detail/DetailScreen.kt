@@ -64,6 +64,9 @@ fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit, onEdit: (String
         state.error?.let {
             Text(it, color = ServexColors.error, style = MaterialTheme.typography.labelSmall)
         }
+        state.actionResult?.let {
+            Text(it, color = ServexColors.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
+        }
         Spacer(Modifier.height(16.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             BigMetric(R.string.metric_cpu, "${m?.cpu?.usagePct?.toInt() ?: 0}%", R.drawable.ic_metric_cpu)
