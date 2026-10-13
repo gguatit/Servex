@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Servex reference agent — stdlib only."""
+import argparse
 import hmac
 import json
 import os
 import re
+import ssl
 import subprocess
+import sys
 import threading
 import time
 import urllib.parse
@@ -392,3 +395,45 @@ def _service_restart(args, server):
 
 def builtin_actions():
     return {"system_info": _system_info, "service_restart": _service_restart}
+
+
+def build_parser():
+    p = argparse.ArgumentParser(prog="servex-agent")
+    p.add_argument("--config")
+    p.add_argument("--token")
+    p.add_argument("--port", type=int)
+    p.add_argument("--bind")
+    p.add_argument("--tls-cert")
+    p.add_argument("--tls-key")
+    return p
+
+
+def main(argv=None):
+    args = build_parser().parse_args(argv)
+    overrides = {"token": args.token, "port": args.port, "bind": args.bind}
+    config = load_config(args.config, overrides)
+    if not config["token"]:
+        sys.stderr.write("error: a token is required (--token, config, or SERVEX_TOKEN)\n")
+        raise SystemExit(2)
+    if args.tls_cert and args.tls_key:
+        config["tls"] = {"cert": args.tls_cert, "key": args.tls_key}
+    ring = Ring(config["history_size"])
+    sampler = Sampler(ring, LocalFS(), config["sample_interval"], config["disk_mounts"])
+    sampler.start()
+    httpd = make_server(config, ring, sampler)
+    if config.get("tls", {}).get("cert"):
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.load_cert_chain(config["tls"]["cert"], config["tls"]["key"])
+        httpd.socket = ctx.wrap_socket(httpd.socket, server_side=True)
+    sys.stderr.write("servex-agent listening on %s:%d\n" % (config["bind"], config["port"]))
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        sampler.stop()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

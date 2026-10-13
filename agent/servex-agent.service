@@ -1,0 +1,17 @@
+; agent/servex-agent.service
+[Unit]
+Description=Servex monitoring agent
+After=network-online.target
+
+[Service]
+Type=simple
+User=servex
+ExecStart=/usr/bin/python3 /opt/servex/servex-agent.py --config /etc/servex/servex-agent.json
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

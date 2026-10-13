@@ -288,5 +288,17 @@ class TestActions(unittest.TestCase):
         self.assertEqual(code, 413)
 
 
+class TestCli(unittest.TestCase):
+    def test_missing_token_exits(self):
+        with self.assertRaises(SystemExit) as ctx:
+            sa.main(["--port", "0"])
+        self.assertEqual(ctx.exception.code, 2)
+
+    def test_parser_defaults(self):
+        args = sa.build_parser().parse_args([])
+        self.assertIsNone(args.config)
+        self.assertIsNone(args.token)
+
+
 if __name__ == "__main__":
     unittest.main()
