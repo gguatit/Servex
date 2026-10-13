@@ -40,6 +40,7 @@ fun ServexNavHost(container: AppContainer, modifier: Modifier = Modifier) {
             OverviewScreen(
                 viewModel = vm,
                 onOpenServer = { nav.navigate(Routes.detail(it)) },
+                onEditServer = { nav.navigate(Routes.edit(it)) },
                 onOpenSettings = { nav.navigate(Routes.SETTINGS) },
                 onAddServer = { nav.navigate(Routes.edit(null)) },
             )

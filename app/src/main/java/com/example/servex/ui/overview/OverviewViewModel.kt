@@ -75,6 +75,10 @@ class OverviewViewModel(private val repository: ServerRepository) : ViewModel() 
         viewModelScope.launch { repository.updateSettings { it.copy(demoMode = on) } }
     }
 
+    fun delete(server: Server) {
+        viewModelScope.launch { repository.delete(server.id) }
+    }
+
     fun refresh() {
         refreshJob?.cancel()
         refreshJob = viewModelScope.launch {

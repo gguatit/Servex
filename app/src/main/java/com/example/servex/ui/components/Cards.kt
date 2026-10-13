@@ -2,8 +2,9 @@ package com.example.servex.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -115,6 +117,7 @@ fun ActionButton(@DrawableRes iconRes: Int, @StringRes textRes: Int, onClick: ()
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ServerCard(
     name: String,
@@ -123,12 +126,14 @@ fun ServerCard(
     spark: List<Float>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier
             .fillMaxWidth()
-            .background(ServexColors.surface, cardShape)
-            .clickable(onClick = onClick)
+            .clip(cardShape)
+            .background(ServexColors.surface)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
