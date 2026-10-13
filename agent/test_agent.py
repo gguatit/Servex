@@ -120,5 +120,41 @@ class TestDerived(unittest.TestCase):
         self.assertEqual(sa.read_os_pretty("NAME=x\n"), "Linux")
 
 
+class TestRingSamplerHistory(unittest.TestCase):
+    SNAPS = [
+        {"ts": 1, "cpu": {"usage_pct": 10.0}, "memory": {"pct": 20.0},
+         "disks": [{"pct": 30.0}], "network": [{"rx_bps": 100, "tx_bps": 50}]},
+        {"ts": 2, "cpu": {"usage_pct": 15.5}, "memory": {"pct": 25.0},
+         "disks": [{"pct": 31.0}], "network": [{"rx_bps": 200, "tx_bps": 60}]},
+    ]
+
+    def test_ring_is_bounded(self):
+        r = sa.Ring(3)
+        for i in range(5):
+            r.append(i)
+        self.assertEqual(r.snapshot(), [2, 3, 4])
+        self.assertEqual(len(r), 3)
+
+    def test_history_extracts_cpu(self):
+        self.assertEqual(sa.history_points(self.SNAPS, "cpu", 60),
+                         [{"t": 1, "v": 10.0}, {"t": 2, "v": 15.5}])
+
+    def test_history_network_is_aggregate_rx(self):
+        snaps = [{"ts": 5, "network": [{"rx_bps": 100, "tx_bps": 50},
+                                       {"rx_bps": 50, "tx_bps": 10}]}]
+        self.assertEqual(sa.history_points(snaps, "network", 60), [{"t": 5, "v": 150.0}])
+
+    def test_history_disk_is_max_pct(self):
+        snaps = [{"ts": 7, "disks": [{"pct": 30.0}, {"pct": 80.0}]}]
+        self.assertEqual(sa.history_points(snaps, "disk", 60), [{"t": 7, "v": 80.0}])
+
+    def test_history_points_clamped(self):
+        snaps = [{"ts": i, "cpu": {"usage_pct": float(i)}} for i in range(10)]
+        self.assertEqual(len(sa.history_points(snaps, "cpu", 3)), 3)
+
+    def test_history_unknown_metric_is_empty(self):
+        self.assertEqual(sa.history_points(self.SNAPS, "bogus", 60), [])
+
+
 if __name__ == "__main__":
     unittest.main()

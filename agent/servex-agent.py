@@ -2,7 +2,9 @@
 """Servex reference agent — stdlib only."""
 import json
 import os
+import threading
 import time
+from collections import deque
 
 DEFAULTS = {
     "bind": "0.0.0.0",
@@ -178,3 +180,63 @@ def metrics_from(fs, prev_cpu, prev_net, dt, mounts, ts):
         "network": list(net_rates(prev_net or {}, cur_net, dt).values()),
     }
     return snapshot, cur_cpu, cur_net
+
+
+class Ring:
+    def __init__(self, size):
+        self._data = deque(maxlen=size)
+        self._lock = threading.Lock()
+
+    def append(self, item):
+        with self._lock:
+            self._data.append(item)
+
+    def snapshot(self):
+        with self._lock:
+            return list(self._data)
+
+    def __len__(self):
+        with self._lock:
+            return len(self._data)
+
+
+class Sampler(threading.Thread):
+    def __init__(self, ring, fs, sample_interval, mounts):
+        super().__init__(daemon=True)
+        self.ring = ring
+        self.fs = fs
+        self.sample_interval = sample_interval
+        self.mounts = mounts
+        self.latest = None
+        self._stop = threading.Event()
+        self._prev_cpu = None
+        self._prev_net = None
+
+    def run(self):
+        while not self._stop.is_set():
+            ts = time.time()
+            try:
+                snap, self._prev_cpu, self._prev_net = metrics_from(
+                    self.fs, self._prev_cpu, self._prev_net,
+                    self.sample_interval, self.mounts, ts)
+                self.latest = snap
+                self.ring.append(snap)
+            except Exception:
+                pass
+            self._stop.wait(self.sample_interval)
+
+    def stop(self):
+        self._stop.set()
+
+
+def history_points(snapshots, metric, points):
+    gets = {
+        "cpu": lambda s: s.get("cpu", {}).get("usage_pct", 0.0),
+        "memory": lambda s: s.get("memory", {}).get("pct", 0.0),
+        "disk": lambda s: max((d.get("pct", 0.0) for d in s.get("disks", [])), default=0.0),
+        "network": lambda s: sum(n.get("rx_bps", 0) for n in s.get("network", [])),
+    }
+    get = gets.get(metric)
+    if get is None:
+        return []
+    return [{"t": s["ts"], "v": round(float(get(s)), 1)} for s in snapshots[-points:]]
