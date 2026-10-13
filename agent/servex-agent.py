@@ -2,6 +2,7 @@
 """Servex reference agent — stdlib only."""
 import json
 import os
+import time
 
 DEFAULTS = {
     "bind": "0.0.0.0",
@@ -73,3 +74,107 @@ def parse_net_dev(text):
 
 def parse_proc_uptime(text):
     return int(float(text.split()[0]))
+
+
+def cpu_usage(prev, cur):
+    d_total = cur["total"] - prev["total"]
+    d_idle = cur["idle"] - prev["idle"]
+    if d_total <= 0:
+        return 0.0
+    return round(max(0.0, min(100.0, (d_total - d_idle) / d_total * 100.0)), 1)
+
+
+def net_rates(prev, cur, dt):
+    out = {}
+    for iface, c in cur.items():
+        p = prev.get(iface)
+        if not p or dt <= 0:
+            rx_bps = tx_bps = 0
+        else:
+            rx_bps = max(0, int((c["rx_total"] - p["rx_total"]) / dt))
+            tx_bps = max(0, int((c["tx_total"] - p["tx_total"]) / dt))
+        out[iface] = {"iface": iface, "rx_bps": rx_bps, "tx_bps": tx_bps,
+                      "rx_total": c["rx_total"], "tx_total": c["tx_total"]}
+    return out
+
+
+def disk_usage(stat):
+    total = stat.f_frsize * stat.f_blocks
+    free = stat.f_frsize * stat.f_bavail
+    used = max(0, total - free)
+    pct = round(used / total * 100, 1) if total else 0.0
+    return {"total": total, "used": used, "pct": pct}
+
+
+def read_os_pretty(text):
+    for line in text.splitlines():
+        if line.startswith("PRETTY_NAME="):
+            return line.split("=", 1)[1].strip().strip('"')
+    return "Linux"
+
+
+class LocalFS:
+    """Real filesystem reader. Isolated so tests can inject a fake."""
+
+    def _read(self, path):
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as fh:
+                return fh.read()
+        except OSError as exc:
+            raise RuntimeError("%s unavailable; servex-agent requires Linux /proc (%s)"
+                               % (path, exc))
+
+    def proc_stat(self):
+        return self._read("/proc/stat")
+
+    def meminfo(self):
+        return self._read("/proc/meminfo")
+
+    def net_dev(self):
+        return self._read("/proc/net/dev")
+
+    def uptime(self):
+        return self._read("/proc/uptime")
+
+    def os_pretty(self):
+        try:
+            return read_os_pretty(self._read("/etc/os-release"))
+        except RuntimeError:
+            return "Linux"
+
+    def statvfs(self, path):
+        return os.statvfs(path)
+
+
+def metrics_from(fs, prev_cpu, prev_net, dt, mounts, ts):
+    import socket
+    cur_cpu = parse_proc_stat(fs.proc_stat())
+    cur_net = parse_net_dev(fs.net_dev())
+    mem = parse_meminfo(fs.meminfo())
+    disks = []
+    for mount in mounts:
+        try:
+            disks.append({"mount": mount, **disk_usage(fs.statvfs(mount))})
+        except OSError:
+            continue  # permission denied / unmounted -> skip
+    try:
+        uptime_s = parse_proc_uptime(fs.uptime())
+    except RuntimeError:
+        uptime_s = 0
+    usage = cpu_usage(prev_cpu, cur_cpu) if prev_cpu else 0.0
+    try:
+        load1, load5, load15 = os.getloadavg()
+    except OSError:
+        load1 = load5 = load15 = 0.0
+    snapshot = {
+        "ts": int(ts),
+        "host": socket.gethostname(),
+        "os": fs.os_pretty(),
+        "uptime_s": uptime_s,
+        "cpu": {"usage_pct": usage, "cores": os.cpu_count() or 1,
+                "load1": round(load1, 2), "load5": round(load5, 2), "load15": round(load15, 2)},
+        "memory": mem,
+        "disks": disks,
+        "network": list(net_rates(prev_net or {}, cur_net, dt).values()),
+    }
+    return snapshot, cur_cpu, cur_net

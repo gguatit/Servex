@@ -74,5 +74,51 @@ class TestParsers(unittest.TestCase):
         self.assertEqual(sa.parse_proc_uptime(self.UPTIME), 382100)
 
 
+class TestDerived(unittest.TestCase):
+    def test_cpu_usage(self):
+        prev = {"idle": 1000, "total": 2000}
+        cur = {"idle": 1500, "total": 3000}   # 500 idle of 1000 total -> 50%
+        self.assertEqual(sa.cpu_usage(prev, cur), 50.0)
+
+    def test_cpu_usage_zero_delta(self):
+        s = {"idle": 10, "total": 20}
+        self.assertEqual(sa.cpu_usage(s, s), 0.0)
+
+    def test_net_rates_clamps_on_reset(self):
+        prev = {"eth0": {"rx_total": 5000, "tx_total": 5000}}
+        cur = {"eth0": {"rx_total": 100, "tx_total": 200}}  # counter wrapped
+        r = sa.net_rates(prev, cur, 1.0)
+        self.assertEqual(r["eth0"]["rx_bps"], 0)
+        self.assertEqual(r["eth0"]["tx_bps"], 0)
+
+    def test_net_rates_new_iface_is_zero(self):
+        r = sa.net_rates({}, {"eth0": {"rx_total": 900, "tx_total": 900}}, 2.0)
+        self.assertEqual(r["eth0"]["rx_bps"], 0)
+
+    def test_net_rates_normal(self):
+        prev = {"eth0": {"rx_total": 0, "tx_total": 0}}
+        cur = {"eth0": {"rx_total": 2048, "tx_total": 1024}}
+        r = sa.net_rates(prev, cur, 2.0)
+        self.assertEqual(r["eth0"]["rx_bps"], 1024)
+        self.assertEqual(r["eth0"]["tx_bps"], 512)
+
+    def test_disk_usage(self):
+        class St:
+            f_frsize = 4096
+            f_blocks = 1000
+            f_bavail = 600
+        r = sa.disk_usage(St())
+        self.assertEqual(r["total"], 4096 * 1000)
+        self.assertEqual(r["used"], 4096 * 400)
+        self.assertEqual(r["pct"], 40.0)
+
+    def test_read_os_pretty(self):
+        text = 'NAME="Ubuntu"\nPRETTY_NAME="Ubuntu 24.04 LTS"\n'
+        self.assertEqual(sa.read_os_pretty(text), "Ubuntu 24.04 LTS")
+
+    def test_read_os_pretty_missing(self):
+        self.assertEqual(sa.read_os_pretty("NAME=x\n"), "Linux")
+
+
 if __name__ == "__main__":
     unittest.main()
