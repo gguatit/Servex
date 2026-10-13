@@ -36,10 +36,13 @@ def main():
         print("ERROR: could not install pyinstaller/pywin32 (no network?). "
               "Nothing was built or faked.")
         return rc
+    icon = os.path.join(ROOT, "assets", "servex.ico")
     cmd = [sys.executable, "-m", "PyInstaller", "--onefile", "--noconfirm",
            "--name", "ServexAgent", "--distpath", "dist",
            "--workpath", "build/pyinstaller", "--specpath", "build/pyinstaller",
            "--console"]
+    if os.path.exists(icon):
+        cmd += ["--icon", icon]
     for mod in HIDDEN:
         cmd += ["--hidden-import", mod]
     cmd += ["--add-data", AGENT + os.pathsep + ".", ENTRY]

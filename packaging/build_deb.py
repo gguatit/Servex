@@ -15,6 +15,7 @@ import tarfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AGENT_SRC = os.path.join(ROOT, "agent", "servex-agent.py")
 LICENSE_SRC = os.path.join(ROOT, "LICENSE")
+ICON_SRC = os.path.join(ROOT, "assets", "icon-256.png")
 
 MAINTAINER = "gguatit <162287131+gguatit@users.noreply.github.com>"
 HOMEPAGE = "https://github.com/gguatit/Servex"
@@ -41,6 +42,16 @@ WantedBy=multi-user.target
 
 WRAPPER = """#!/bin/sh
 exec /usr/bin/python3 /opt/servex/servex-agent.py "$@"
+"""
+
+DESKTOP = """[Desktop Entry]
+Type=Application
+Name=Servex Agent
+Comment=Servex monitoring agent
+Exec=/usr/bin/servex-agent
+Icon=servex-agent
+Terminal=true
+Categories=Utility;System;
 """
 
 COPYRIGHT = """This package is part of Servex.
@@ -163,6 +174,10 @@ def _payload(version):
         ("usr/bin/servex-agent", 0o755, WRAPPER.encode("utf-8")),
         ("usr/share/doc/servex-agent/copyright", 0o644,
          COPYRIGHT.encode("utf-8")),
+        ("usr/share/icons/hicolor/256x256/apps/servex-agent.png", 0o644,
+         _read(ICON_SRC)),
+        ("usr/share/applications/servex-agent.desktop", 0o644,
+         DESKTOP.encode("utf-8")),
     ]
     return files
 
