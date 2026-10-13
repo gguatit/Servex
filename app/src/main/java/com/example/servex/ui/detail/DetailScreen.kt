@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.servex.R
+import com.example.servex.ui.charts.ChartUnit
 import com.example.servex.ui.charts.LineChart
 import com.example.servex.ui.components.ActionButton
 import com.example.servex.ui.components.BigMetric
@@ -85,7 +86,7 @@ fun DetailScreen(viewModel: DetailViewModel, onBack: () -> Unit, onEdit: (String
         LineChart(state.history["memory"].orEmpty(), ServexColors.success)
         Spacer(Modifier.height(8.dp))
         SectionHeader(R.string.metric_network)
-        LineChart(state.history["network"].orEmpty(), ServexColors.warning)
+        LineChart(state.history["network"].orEmpty(), ServexColors.warning, unit = ChartUnit.RATE)
         Spacer(Modifier.height(16.dp))
         SectionHeader(R.string.section_disks)
         m?.disks?.forEach { d ->
