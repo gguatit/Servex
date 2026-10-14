@@ -34,7 +34,7 @@ DEFAULTS = {
     "actions": [],
     "disk_mounts": ["/"],
     "tls": {"cert": None, "key": None},
-    "rate_limit_per_min": 240,
+    "rate_limit_per_min": 0,
     "max_body_bytes": 65536,
 }
 
@@ -956,6 +956,8 @@ class RateLimiter:
         self._lock = threading.Lock()
 
     def allow(self, ip):
+        if self.per_min <= 0:  # 0 disables the limiter
+            return True
         now = time.time()
         with self._lock:
             window = self._hits.setdefault(ip, [])

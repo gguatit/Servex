@@ -157,14 +157,22 @@ fun OverviewScreen(
             },
             dismissButton = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = {
-                        menuFor = null
-                        onEditServer(row.server.id)
-                    }) { Text(stringResource(R.string.action_edit)) }
-                    TextButton(onClick = {
-                        menuFor = null
-                        deleteFor = row
-                    }) { Text(stringResource(R.string.action_delete), color = ServexColors.error) }
+                    if (state.demoMode) {
+                        Text(
+                            stringResource(R.string.demo_note),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ServexColors.onSurfaceVariant,
+                        )
+                    } else {
+                        TextButton(onClick = {
+                            menuFor = null
+                            onEditServer(row.server.id)
+                        }) { Text(stringResource(R.string.action_edit)) }
+                        TextButton(onClick = {
+                            menuFor = null
+                            deleteFor = row
+                        }) { Text(stringResource(R.string.action_delete), color = ServexColors.error) }
+                    }
                 }
             },
         )
