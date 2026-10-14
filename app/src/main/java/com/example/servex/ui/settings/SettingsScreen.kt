@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -18,10 +19,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.servex.R
@@ -51,14 +56,14 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
             )
         }
 
-        SettingRow(stringResource(R.string.field_poll), trimSeconds(s.refreshIntervalS)) {
-            viewModel.setRefresh(it.toDoubleOrNull() ?: 5.0)
+        NumberRow(stringResource(R.string.field_poll), trimNumber(s.refreshIntervalS)) {
+            it.toDoubleOrNull()?.let(viewModel::setRefresh)
         }
-        SettingRow(stringResource(R.string.field_warning), s.warningPct.toInt().toString()) {
-            viewModel.setWarning(it.toDoubleOrNull() ?: 75.0)
+        NumberRow(stringResource(R.string.field_warning), trimNumber(s.warningPct)) {
+            it.toDoubleOrNull()?.let(viewModel::setWarning)
         }
-        SettingRow(stringResource(R.string.field_critical), s.criticalPct.toInt().toString()) {
-            viewModel.setCritical(it.toDoubleOrNull() ?: 90.0)
+        NumberRow(stringResource(R.string.field_critical), trimNumber(s.criticalPct)) {
+            it.toDoubleOrNull()?.let(viewModel::setCritical)
         }
 
         SwitchRow(stringResource(R.string.field_alerts), s.alertsEnabled) { on ->
@@ -85,14 +90,29 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
     }
 }
 
-private fun trimSeconds(v: Double): String =
+/** 5.0 -> "5", 0.5 -> "0.5" */
+private fun trimNumber(v: Double): String =
     if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
 
-
+/**
+ * Keeps the typed text locally so partial input ("0.", "") is not replaced by the
+ * stored value; the caller commits only when the text parses to a number.
+ */
 @Composable
-private fun SettingRow(label: String, value: String, onChange: (String) -> Unit) {    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
+private fun NumberRow(label: String, initial: String, onCommit: (String) -> Unit) {
+    var text by remember { mutableStateOf(initial) }
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
         Text(label, modifier = Modifier.weight(1f), color = ServexColors.onSurface)
-        OutlinedTextField(value, onChange, modifier = Modifier.width(120.dp), singleLine = true)
+        OutlinedTextField(
+            value = text,
+            onValueChange = { new ->
+                text = new
+                onCommit(new)
+            },
+            modifier = Modifier.width(120.dp),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        )
     }
 }
 

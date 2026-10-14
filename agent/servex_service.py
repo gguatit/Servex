@@ -152,7 +152,26 @@ def main(argv=None):
         print("  config: %s" % config)
         print("  Ctrl+C to stop. Run 'ServexAgent.exe install' as admin to")
         print("  register it as a service that starts at boot.")
-        return agent.main(["--config", config])
+        print("")
+        try:
+            return agent.main(["--config", config])
+        except OSError as exc:
+            port = 8765
+            try:
+                port = agent.load_config(config).get("port", 8765)
+            except Exception:
+                pass
+            print("error: could not start the agent: %s" % exc)
+            print("hint: port %s may already be in use. Stop the other copy or"
+                  " start on another port:" % port)
+            print('      ServexAgent.exe --config "%s" --port %s' % (config, port + 1))
+        except Exception as exc:
+            print("error: %s" % exc)
+        try:
+            input("Press Enter to close...")
+        except Exception:
+            pass
+        return 1
     return agent.main(argv)
 
 
