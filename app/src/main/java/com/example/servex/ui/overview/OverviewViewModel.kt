@@ -64,7 +64,7 @@ class OverviewViewModel(private val repository: ServerRepository) : ViewModel() 
             repository.settings.map { it.refreshIntervalS }.distinctUntilChanged()
                 .collectLatest { secs ->
                     while (true) {
-                        delay(secs.coerceIn(1, 60) * 1000L)
+                        delay((secs.coerceIn(0.2, 60.0) * 1000.0).toLong())
                         refresh()
                     }
                 }

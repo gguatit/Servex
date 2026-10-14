@@ -17,13 +17,13 @@ import com.example.servex.domain.model.ServicesInfo
 import kotlin.random.Random
 
 /**
- * Synthetic data for demo mode so the whole app can be explored without an
- * agent. Values follow a mean-reverting random walk with occasional spikes and
- * a disk that fills up slowly, so the UI moves like a live server.
+ * Synthetic data used by demo mode so the whole app can be explored without a
+ * real agent. Live values follow a mean-reverting random walk with occasional
+ * spikes, and the chart history is append-only, so the past never changes.
  */
 object DemoData {
     private const val PREFIX = "demo:"
-    private const val GIB = 1024L * 1024 * 1024
+    private const val HISTORY_MAX = 150
 
     val servers: List<Server> = listOf(
         Server(id = PREFIX + "web-01", name = "web-01", baseUrl = "https://web-01.demo:8765"),
@@ -52,15 +52,14 @@ object DemoData {
 
     private val rng = Random.Default
 
-    // Live state per server: [cpu, mem, disk, rx, tx]. The disk only grows.
+    /** Current live values per server: cpu, mem, disk, rx, tx. */
     private val live = mutableMapOf<String, DoubleArray>()
 
-    private fun state(server: Server, spec: Spec): DoubleArray =
-        live.getOrPut(server.id) {
-            doubleArrayOf(spec.cpu, spec.mem, spec.disk, spec.rx.toDouble(), spec.tx.toDouble())
-        }
+    private data class Sample(val tMs: Long, val v: Double)
 
-    /** Mean-reverting random walk; [spikeChance] adds occasional bursts. */
+    /** Append-only history per "serverId|metric". */
+    private val series = mutableMapOf<String, ArrayDeque<Sample>>()
+
     private fun wander(
         v: Double,
         base: Double,
@@ -70,19 +69,25 @@ object DemoData {
         hi: Double,
         spikeChance: Double = 0.0,
         spike: Double = 0.0,
+        rising: Boolean = false,
     ): Double {
-        var next = v + (base - v) * pull + (rng.nextDouble() - 0.5) * 2.0 * sigma
+        var next = if (rising) v + rng.nextDouble() * sigma
+        else v + (base - v) * pull + (rng.nextDouble() - 0.5) * 2.0 * sigma
         if (spikeChance > 0.0 && rng.nextDouble() < spikeChance) next += spike * rng.nextDouble()
         return next.coerceIn(lo, hi)
     }
 
+    private fun state(server: Server, spec: Spec): DoubleArray =
+        live.getOrPut(server.id) {
+            doubleArrayOf(spec.cpu, spec.mem, spec.disk, spec.rx.toDouble(), spec.tx.toDouble())
+        }
+
     fun metrics(server: Server, nowMs: Long = System.currentTimeMillis()): MetricsSnapshot {
         val s = specFor(server)
         val w = state(server, s)
-
         w[0] = wander(w[0], s.cpu, 0.15, 3.0, 1.0, 100.0, spikeChance = 0.04, spike = 30.0)
         w[1] = wander(w[1], s.mem, 0.10, 1.5, 1.0, 100.0, spikeChance = 0.03, spike = 10.0)
-        w[2] = (w[2] + rng.nextDouble() * 0.03).coerceIn(0.0, 100.0)
+        w[2] = wander(w[2], s.disk, 0.0, 0.03, 0.0, 100.0, rising = true)
         w[3] = wander(w[3], s.rx.toDouble(), 0.20, s.rx * 0.30, 0.0, s.rx * 5.0)
         w[4] = wander(w[4], s.tx.toDouble(), 0.20, s.tx * 0.30, 0.0, s.tx * 5.0)
 
@@ -92,30 +97,20 @@ object DemoData {
         val rx = w[3].toLong()
         val tx = w[4].toLong()
 
-        val totalMem = 16L * GIB
+        val totalMem = 16L * 1024 * 1024 * 1024
         val usedMem = (totalMem * (mem / 100.0)).toLong()
-        val swapTotal = 4L * GIB
+        val swapTotal = 4L * 1024 * 1024 * 1024
         val swapUsed = (swapTotal * (mem / 250.0)).toLong()
-        val diskTotal = 512L * GIB
+        val diskTotal = 512L * 1024 * 1024 * 1024
         val dataPct = (disk * 0.8).coerceIn(0.0, 100.0)
+        val perCore = List(8) { (cpu + rng.nextDouble() * 14.0 - 7.0).coerceIn(0.0, 100.0) }
 
-        val perCore = (0 until 8).map { i ->
-            (cpu + (rng.nextDouble() - 0.5) * 14.0 - i * 0.5).coerceIn(0.0, 100.0)
-        }
-
-        val procCpu = listOf(
-            ProcessInfo(4211, "nginx", cpu * 0.35, 1.2),
-            ProcessInfo(8823, "postgres", cpu * 0.22, 8.4),
-            ProcessInfo(1204, "dockerd", cpu * 0.14, 2.1),
-            ProcessInfo(3390, "python3", cpu * 0.09, 3.7),
-            ProcessInfo(5512, "systemd-journal", cpu * 0.05, 0.6),
-        )
-        val procMem = listOf(
-            ProcessInfo(8823, "postgres", cpu * 0.22, 8.4),
-            ProcessInfo(3390, "python3", cpu * 0.09, 3.7),
-            ProcessInfo(1204, "dockerd", cpu * 0.14, 2.1),
-            ProcessInfo(4211, "nginx", cpu * 0.35, 1.2),
-            ProcessInfo(5512, "systemd-journal", cpu * 0.05, 0.6),
+        val procs = listOf(
+            ProcessInfo(pid = 4211, name = "nginx", cpuPct = cpu * 0.35, memPct = 1.2),
+            ProcessInfo(pid = 8823, name = "postgres", cpuPct = cpu * 0.22, memPct = 8.4),
+            ProcessInfo(pid = 1204, name = "dockerd", cpuPct = cpu * 0.14, memPct = 2.1),
+            ProcessInfo(pid = 3390, name = "python3", cpuPct = cpu * 0.09, memPct = 3.7),
+            ProcessInfo(pid = 5512, name = "systemd-journal", cpuPct = cpu * 0.05, memPct = 0.6),
         )
 
         return MetricsSnapshot(
@@ -151,8 +146,15 @@ object DemoData {
             ),
             network = listOf(
                 NetworkInfo(
-                    "eth0", rx, tx, rx * 3600, tx * 3600,
-                    rxErrs = 0, txErrs = 0, rxDrops = 12, txDrops = 3,
+                    iface = "eth0",
+                    rxBps = rx,
+                    txBps = tx,
+                    rxTotal = rx * 3600,
+                    txTotal = tx * 3600,
+                    rxErrs = 0,
+                    txErrs = 0,
+                    rxDrops = 12,
+                    txDrops = 3,
                 ),
             ),
             kernel = "6.8.0-45-generic",
@@ -165,37 +167,68 @@ object DemoData {
                 readBps = (rx * 0.4).toLong(),
                 writeBps = (tx * 0.6).toLong(),
             ),
-            processes = ProcessList(byCpu = procCpu, byMem = procMem),
+            processes = ProcessList(byCpu = procs, byMem = procs.sortedByDescending { it.memPct ?: 0.0 }),
             services = ServicesInfo(failed = listOf("apt-daily.service"), total = 142),
             gpu = emptyList(),
             docker = DockerInfo(running = 3, stopped = 1, total = 4),
         )
     }
 
-    fun history(metric: String, points: Int, nowMs: Long = System.currentTimeMillis()): HistoryResponse {
-        val n = points.coerceIn(1, 150)
-        val t0 = nowMs / 1000 - n
-        val base = when (metric) {
-            "memory" -> 55.0
-            "disk" -> 40.0
-            "network" -> 1_000_000.0
-            else -> 35.0
+    private fun baseOf(metric: String): Double = when (metric) {
+        "memory" -> 55.0
+        "disk" -> 40.0
+        "network" -> 1_000_000.0
+        else -> 35.0
+    }
+
+    private fun ampOf(metric: String): Double = when (metric) {
+        "memory" -> 18.0
+        "disk" -> 6.0
+        "network" -> 700_000.0
+        else -> 20.0
+    }
+
+    private fun nextValue(metric: String, prev: Double): Double {
+        val base = baseOf(metric)
+        val amp = ampOf(metric)
+        val drift = if (metric == "disk") amp / 40.0 else 0.0
+        val next = prev + (base - prev) * 0.15 + (rng.nextDouble() - 0.5) * 2.0 * (amp / 6.0) + drift
+        return next.coerceIn(base - amp, base + amp)
+    }
+
+    /**
+     * Appends at most one sample per call and never rewrites earlier samples, so
+     * the chart extends smoothly instead of reshuffling on every refresh.
+     */
+    fun history(
+        server: Server,
+        metric: String,
+        points: Int,
+        nowMs: Long = System.currentTimeMillis(),
+    ): HistoryResponse {
+        val n = points.coerceIn(1, HISTORY_MAX)
+        val buf = series.getOrPut(server.id + "|" + metric) { ArrayDeque() }
+
+        if (buf.isEmpty()) {
+            var v = baseOf(metric)
+            val start = nowMs - (n - 1) * 1000L
+            for (i in 0 until n - 1) {
+                v = nextValue(metric, v)
+                buf.addLast(Sample(start + i * 1000L, v))
+            }
         }
-        val amp = when (metric) {
-            "memory" -> 18.0
-            "disk" -> 6.0
-            "network" -> 700_000.0
-            else -> 20.0
+        val last = buf.lastOrNull()
+        if (last == null || nowMs > last.tMs) {
+            buf.addLast(Sample(nowMs, nextValue(metric, last?.v ?: baseOf(metric))))
         }
-        val sigma = amp / 8.0
-        val drift = if (metric == "disk") amp / n else 0.0
-        var v = base + (rng.nextDouble() - 0.5) * amp
-        val pts = (0 until n).map { i ->
-            v += (base - v) * 0.15 + (rng.nextDouble() - 0.5) * 2.0 * sigma + drift
-            v = v.coerceIn(base - amp, base + amp)
-            HistoryPoint(t = t0 + i, v = v)
-        }
-        return HistoryResponse(metric = metric, intervalS = 1.0, points = pts)
+        while (buf.size > HISTORY_MAX) buf.removeFirst()
+
+        val tail = buf.toList().takeLast(n)
+        return HistoryResponse(
+            metric = metric,
+            intervalS = 1.0,
+            points = tail.map { HistoryPoint(t = it.tMs / 1000, v = it.v) },
+        )
     }
 
     fun action(action: String, args: Map<String, String>): ActionResult {

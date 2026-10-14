@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-fun clampRefresh(v: Int): Int = v.coerceIn(1, 60)
+fun clampRefresh(v: Double): Double = v.coerceIn(0.2, 60.0)
 fun clampPct(v: Double): Double = v.coerceIn(1.0, 100.0)
 
 class SettingsViewModel(
@@ -25,7 +25,7 @@ class SettingsViewModel(
         repository.updateSettings(transform)
     }
 
-    fun setRefresh(v: Int) = apply { it.copy(refreshIntervalS = clampRefresh(v)) }
+    fun setRefresh(v: Double) = apply { it.copy(refreshIntervalS = clampRefresh(v)) }
     fun setWarning(v: Double) = apply { it.copy(warningPct = clampPct(v)) }
     fun setCritical(v: Double) = apply { it.copy(criticalPct = clampPct(v)) }
     fun setAlerts(v: Boolean) {

@@ -55,7 +55,7 @@ class ServerRepository(
 
     suspend fun history(server: Server, metric: String, points: Int): Result<HistoryResponse> =
         if (DemoData.isDemo(server)) {
-            Result.success(DemoData.history(metric, points, System.currentTimeMillis()))
+            Result.success(DemoData.history(server, metric, points, System.currentTimeMillis()))
         } else {
             call(server) { t -> api.history(server, t, metric, points) }
         }

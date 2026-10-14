@@ -51,8 +51,8 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
             )
         }
 
-        SettingRow(stringResource(R.string.field_poll), s.refreshIntervalS.toString()) {
-            viewModel.setRefresh(it.toIntOrNull() ?: 5)
+        SettingRow(stringResource(R.string.field_poll), trimSeconds(s.refreshIntervalS)) {
+            viewModel.setRefresh(it.toDoubleOrNull() ?: 5.0)
         }
         SettingRow(stringResource(R.string.field_warning), s.warningPct.toInt().toString()) {
             viewModel.setWarning(it.toDoubleOrNull() ?: 75.0)
@@ -85,9 +85,12 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
     }
 }
 
+private fun trimSeconds(v: Double): String =
+    if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
+
+
 @Composable
-private fun SettingRow(label: String, value: String, onChange: (String) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
+private fun SettingRow(label: String, value: String, onChange: (String) -> Unit) {    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
         Text(label, modifier = Modifier.weight(1f), color = ServexColors.onSurface)
         OutlinedTextField(value, onChange, modifier = Modifier.width(120.dp), singleLine = true)
     }
