@@ -61,7 +61,7 @@ def _allow_firewall(port):
         args = ('advfirewall firewall add rule name="Servex Agent" '
                 'dir=in action=allow protocol=TCP localport=%s' % port)
         rc = ctypes.windll.shell32.ShellExecuteW(
-            None, "runas", "netsh", args, None, 1)
+            None, "runas", "netsh", args, None, 0)  # 0 = SW_HIDE: no console flash
         return rc > 32
     except Exception:
         return False
