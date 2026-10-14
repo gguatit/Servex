@@ -26,6 +26,11 @@ try:
 except ImportError:  # pywin32 missing (or non-Windows): console mode still works
     win32service = win32serviceutil = servicemanager = None
 
+try:
+    import servex_gui
+except Exception:  # tkinter missing or not bundled
+    servex_gui = None
+
 SERVICE_COMMANDS = ("install", "update", "remove", "start", "stop",
                     "restart", "debug")
 
@@ -182,8 +187,11 @@ def main(argv=None):
         return 0
     if not argv:
         # Run with no arguments (e.g. double-clicked): make sure a config with a
-        # token exists, then start the agent here so the token and URLs show.
+        # token exists, then show the GUI (or fall back to the console) so the
+        # token and URLs are visible.
         config = ensure_config()
+        if servex_gui is not None:
+            return servex_gui.run(config)
         port = _configured_port(config)
         print("Servex Agent")
         print("  config: %s" % config)

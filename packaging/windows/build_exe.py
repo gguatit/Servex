@@ -18,7 +18,9 @@ AGENT = os.path.join(ROOT, "agent", "servex-agent.py")
 HIDDEN = ["win32timezone", "argparse", "glob", "hmac", "json", "os",
           "platform", "re", "secrets", "shutil", "socket", "ssl",
           "subprocess", "sys", "threading", "time", "urllib.parse",
-          "collections", "http.server", "ctypes", "ctypes.wintypes", "winreg"]
+          "collections", "http.server", "ctypes", "ctypes.wintypes", "winreg",
+          "tkinter", "tkinter.ttk", "tkinter.constants", "tkinter.font",
+          "_tkinter"]
 
 
 def run(cmd):
