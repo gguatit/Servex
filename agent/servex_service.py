@@ -128,6 +128,37 @@ else:
                 "run: python -m pip install pywin32")
 
 
+def _configured_port(config):
+    try:
+        return agent.load_config(config).get("port", 8765)
+    except Exception:
+        return 8765
+
+
+def _add_firewall_rule(port):
+    """Best effort: let the phone reach the agent through Windows Firewall."""
+    try:
+        subprocess.run(
+            ["netsh", "advfirewall", "firewall", "add", "rule",
+             "name=Servex Agent", "dir=in", "action=allow",
+             "protocol=TCP", "localport=%s" % port],
+            check=False, timeout=20,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass
+
+
+def _remove_firewall_rule():
+    try:
+        subprocess.run(
+            ["netsh", "advfirewall", "firewall", "delete", "rule",
+             "name=Servex Agent"],
+            check=False, timeout=20,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     if "--run" in argv:
@@ -137,10 +168,15 @@ def main(argv=None):
             raise RuntimeError(
                 "pywin32 is required for Windows service commands; "
                 "run: python -m pip install pywin32")
+        command = argv[0].lower()
         # Default to automatic start so the agent comes back after a reboot
         # (pywin32 registers services as manual unless --startup is given).
-        if argv[0].lower() == "install" and "--startup" not in argv:
+        if command == "install" and "--startup" not in argv:
             argv = argv + ["--startup", "auto"]
+        if command in ("install", "start"):
+            _add_firewall_rule(_configured_port(ensure_config()))
+        if command == "remove":
+            _remove_firewall_rule()
         win32serviceutil.HandleCommandLine(
             ServexAgentService, argv=[sys.argv[0]] + argv)
         return 0
@@ -148,10 +184,17 @@ def main(argv=None):
         # Run with no arguments (e.g. double-clicked): make sure a config with a
         # token exists, then start the agent here so the token and URLs show.
         config = ensure_config()
+        port = _configured_port(config)
         print("Servex Agent")
         print("  config: %s" % config)
-        print("  Ctrl+C to stop. Run 'ServexAgent.exe install' as admin to")
-        print("  register it as a service that starts at boot.")
+        print("")
+        print("  NOTE: this window IS the agent - closing it stops monitoring.")
+        print("  To keep it running always (and after a reboot), open an")
+        print("  ADMIN PowerShell here and run:")
+        print("      ServexAgent.exe install")
+        print("      ServexAgent.exe start")
+        print("  install also opens TCP %s in the Windows firewall so the" % port)
+        print("  phone can reach this PC.")
         print("")
         try:
             return agent.main(["--config", config])
