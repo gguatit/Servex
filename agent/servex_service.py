@@ -12,7 +12,9 @@ Usage (frozen exe or python):
     ServexAgent.exe start | stop | remove    control the service
 """
 import importlib.util
+import json
 import os
+import secrets
 import subprocess
 import sys
 import threading
@@ -56,6 +58,16 @@ def ensure_config(path=None):
     if not os.path.exists(path):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         agent.init_config(path)
+        return path
+    # The file may exist with an empty token; fill one in so the agent can start.
+    try:
+        cfg = agent.load_config(path)
+        if not cfg.get("token"):
+            cfg["token"] = secrets.token_urlsafe(24)
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(json.dumps(cfg, indent=2) + "\n")
+    except Exception:
+        pass
     return path
 
 
@@ -132,6 +144,15 @@ def main(argv=None):
         win32serviceutil.HandleCommandLine(
             ServexAgentService, argv=[sys.argv[0]] + argv)
         return 0
+    if not argv:
+        # Run with no arguments (e.g. double-clicked): make sure a config with a
+        # token exists, then start the agent here so the token and URLs show.
+        config = ensure_config()
+        print("Servex Agent")
+        print("  config: %s" % config)
+        print("  Ctrl+C to stop. Run 'ServexAgent.exe install' as admin to")
+        print("  register it as a service that starts at boot.")
+        return agent.main(["--config", config])
     return agent.main(argv)
 
 
