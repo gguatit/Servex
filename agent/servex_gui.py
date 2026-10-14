@@ -7,6 +7,7 @@ Standard library only (tkinter); no extra dependencies.
 """
 import importlib.util
 import os
+import subprocess
 import sys
 import threading
 
@@ -36,6 +37,34 @@ def _hide_console():
             ctypes.windll.user32.ShowWindow(hwnd, 0)
     except Exception:
         pass
+
+
+def _firewall_rule_exists():
+    """True when the inbound rule that lets the phone connect already exists."""
+    if os.name != "nt":
+        return True
+    try:
+        out = subprocess.run(
+            ["netsh", "advfirewall", "firewall", "show", "rule",
+             "name=Servex Agent"],
+            capture_output=True, text=True, timeout=20,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        return out.returncode == 0 and "Servex Agent" in (out.stdout or "")
+    except Exception:
+        return True
+
+
+def _allow_firewall(port):
+    """Ask Windows (UAC prompt) to open the inbound port."""
+    try:
+        import ctypes
+        args = ('advfirewall firewall add rule name="Servex Agent" '
+                'dir=in action=allow protocol=TCP localport=%s' % port)
+        rc = ctypes.windll.shell32.ShellExecuteW(
+            None, "runas", "netsh", args, None, 1)
+        return rc > 32
+    except Exception:
+        return False
 
 
 def run(config_path):
@@ -77,6 +106,20 @@ def run(config_path):
     status_var = tk.StringVar(value="Listening on port %s" % port)
     ttk.Label(root, textvariable=status_var, foreground="#4C8DFF").pack(padx=16, pady=(8, 0), anchor="w")
 
+    fw_var = tk.StringVar(value="")
+    ttk.Label(root, textvariable=fw_var, foreground="#FFC93C",
+              wraplength=520, justify="left").pack(padx=16, anchor="w")
+
+    def refresh_firewall():
+        fw_var.set("" if _firewall_rule_exists()
+                   else "Windows Firewall may block the phone. Click 'Allow in firewall'.")
+
+    def allow_firewall():
+        if _allow_firewall(port):
+            root.after(2000, refresh_firewall)
+        else:
+            fw_var.set("Could not open the firewall (was the UAC prompt cancelled?)")
+
     frame = ttk.Frame(root)
     frame.pack(fill="both", expand=True, padx=16, pady=12)
 
@@ -110,6 +153,8 @@ def run(config_path):
 
     bottom = ttk.Frame(root)
     bottom.pack(fill="x", padx=16, pady=(0, 16))
+    ttk.Button(bottom, text="Allow in firewall",
+               command=allow_firewall).pack(side="left")
     ttk.Button(bottom, text="Quit (stop the agent)",
                command=quit_app).pack(side="right")
     ttk.Button(bottom, text="Hide to taskbar",
@@ -123,6 +168,7 @@ def run(config_path):
         root.after(1000, poll)
 
     root.protocol("WM_DELETE_WINDOW", root.iconify)  # X hides, never quits
+    refresh_firewall()
     root.after(1000, poll)
     root.mainloop()
     return 0
