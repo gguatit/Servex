@@ -33,6 +33,7 @@ except Exception:  # tkinter missing or not bundled
 
 SERVICE_COMMANDS = ("install", "update", "remove", "start", "stop",
                     "restart", "debug")
+_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
 
 def _base_dir():
@@ -147,7 +148,7 @@ def _add_firewall_rule(port):
             ["netsh", "advfirewall", "firewall", "add", "rule",
              "name=Servex Agent", "dir=in", "action=allow",
              "protocol=TCP", "localport=%s" % port],
-            check=False, timeout=20,
+            check=False, timeout=20, creationflags=_NO_WINDOW,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception:
         pass
@@ -158,8 +159,20 @@ def _remove_firewall_rule():
         subprocess.run(
             ["netsh", "advfirewall", "firewall", "delete", "rule",
              "name=Servex Agent"],
-            check=False, timeout=20,
+            check=False, timeout=20, creationflags=_NO_WINDOW,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass
+
+
+def _message_box(text, error=False):
+    """Native dialog, because the frozen exe has no console to print to."""
+    if os.name != "nt":
+        return
+    try:
+        import ctypes
+        flags = 0x10 if error else 0x40  # MB_ICONERROR / MB_ICONINFORMATION
+        ctypes.windll.user32.MessageBoxW(0, text, "Servex Agent", flags)
     except Exception:
         pass
 
@@ -182,8 +195,18 @@ def main(argv=None):
             _add_firewall_rule(_configured_port(ensure_config()))
         if command == "remove":
             _remove_firewall_rule()
-        win32serviceutil.HandleCommandLine(
-            ServexAgentService, argv=[sys.argv[0]] + argv)
+        try:
+            win32serviceutil.HandleCommandLine(
+                ServexAgentService, argv=[sys.argv[0]] + argv)
+        except Exception as exc:
+            _message_box(
+                "Could not %s the Servex Agent service:\n%s\n\n"
+                "Run this from an ADMIN PowerShell (right-click > Run as "
+                "administrator)." % (command, exc), error=True)
+            return 1
+        if command in ("install", "start"):
+            _message_box("Servex Agent service '%s' done.\n"
+                         "It now starts automatically at boot." % command)
         return 0
     if not argv:
         # Run with no arguments (e.g. double-clicked): make sure a config with a
@@ -193,35 +216,25 @@ def main(argv=None):
         if servex_gui is not None:
             return servex_gui.run(config)
         port = _configured_port(config)
-        print("Servex Agent")
-        print("  config: %s" % config)
-        print("")
-        print("  NOTE: this window IS the agent - closing it stops monitoring.")
-        print("  To keep it running always (and after a reboot), open an")
-        print("  ADMIN PowerShell here and run:")
-        print("      ServexAgent.exe install")
-        print("      ServexAgent.exe start")
-        print("  install also opens TCP %s in the Windows firewall so the" % port)
-        print("  phone can reach this PC.")
-        print("")
+        urls = "\n".join(agent._lan_addresses(port) or ["http://127.0.0.1:%d" % port])
+        token = ""
+        try:
+            token = agent.load_config(config).get("token", "")
+        except Exception:
+            pass
+        _message_box(
+            "Servex Agent is starting.\n\n"
+            "Address:\n%s\n\nToken:\n%s\n\n"
+            "To run it without any window and start it at boot, open an ADMIN "
+            "PowerShell and run:\n    ServexAgent.exe install\n    "
+            "ServexAgent.exe start" % (urls, token))
         try:
             return agent.main(["--config", config])
         except OSError as exc:
-            port = 8765
-            try:
-                port = agent.load_config(config).get("port", 8765)
-            except Exception:
-                pass
-            print("error: could not start the agent: %s" % exc)
-            print("hint: port %s may already be in use. Stop the other copy or"
-                  " start on another port:" % port)
-            print('      ServexAgent.exe --config "%s" --port %s' % (config, port + 1))
+            _message_box("Could not start the agent:\n%s\n\n"
+                         "Port %s may already be in use." % (exc, port), error=True)
         except Exception as exc:
-            print("error: %s" % exc)
-        try:
-            input("Press Enter to close...")
-        except Exception:
-            pass
+            _message_box("Could not start the agent:\n%s" % exc, error=True)
         return 1
     return agent.main(argv)
 

@@ -42,7 +42,7 @@ def main():
     cmd = [sys.executable, "-m", "PyInstaller", "--onefile", "--noconfirm",
            "--name", "ServexAgent", "--distpath", "dist",
            "--workpath", "build/pyinstaller", "--specpath", "build/pyinstaller",
-           "--console"]
+           "--windowed"]
     if os.path.exists(icon):
         cmd += ["--icon", icon]
     for mod in HIDDEN:
