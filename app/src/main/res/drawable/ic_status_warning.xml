@@ -4,18 +4,18 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M12 3L22 20H2L12 3Z"
+        android:pathData="M12 3.5L22 20.5H2L12 3.5Z"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="2"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
     <path
-        android:pathData="M12 9v5"
+        android:pathData="M12 9.5v5"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="2"
         android:strokeLineCap="round" />
     <path
-        android:pathData="M12 17.2v0.01"
+        android:pathData="M12 17.7v0.01"
         android:strokeColor="#FFFFFF"
         android:strokeWidth="2"
         android:strokeLineCap="round" />
