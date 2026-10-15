@@ -53,6 +53,22 @@ foreach ($relative in $targets) {
     }
 }
 
+Write-Host "== temp junk =="
+$temp = Join-Path $env:LOCALAPPDATA 'Temp'
+$tempTargets = @(Get-ChildItem -LiteralPath $temp -Directory -Filter '_MEI*' -ErrorAction SilentlyContinue)
+foreach ($name in @('vscode-stable-user-x64', 'Diagnostics', 'lwjgl_comma')) {
+    $p = Join-Path $temp $name
+    if (Test-Path -LiteralPath $p) { $tempTargets += Get-Item -LiteralPath $p }
+}
+foreach ($t in $tempTargets) {
+    try {
+        Remove-Item -LiteralPath $t.FullName -Recurse -Force -ErrorAction Stop
+        Write-Host "removed temp\$($t.Name)"
+    } catch {
+        Write-Host "skipped temp\$($t.Name) (in use or access denied)"
+    }
+}
+
 $zigZip = Join-Path $env:TEMP 'opencode\zig\zig.zip'
 if (Test-Path -LiteralPath $zigZip) {
     Remove-Item -LiteralPath $zigZip -Force
