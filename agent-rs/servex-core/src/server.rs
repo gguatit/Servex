@@ -27,6 +27,11 @@ impl RateLimiter {
         }
         let now = Instant::now();
         let mut hits = self.hits.lock().unwrap();
+        if hits.len() > 10_000 {
+            hits.retain(|_, window| {
+                window.iter().any(|t| now.duration_since(*t) <= Duration::from_secs(60))
+            });
+        }
         let window = hits.entry(ip).or_default();
         window.retain(|t| now.duration_since(*t) <= Duration::from_secs(60));
         if window.len() >= self.per_min as usize {
@@ -99,8 +104,20 @@ impl Agent {
     }
 
     pub fn serve(self: &Arc<Self>) -> Result<(), String> {
-        let server = self.bind()?;
-        self.serve_on(server)
+        loop {
+            match self.bind() {
+                Ok(server) => {
+                    if let Err(e) = self.serve_on(server) {
+                        eprintln!("servex-agent: serve error: {e}");
+                    }
+                    eprintln!("servex-agent: accepting connections stopped; restarting in 1s");
+                }
+                Err(e) => {
+                    eprintln!("servex-agent: bind failed: {e}; retrying in 1s");
+                }
+            }
+            std::thread::sleep(Duration::from_secs(1));
+        }
     }
 
     pub fn serve_on(self: &Arc<Self>, server: Server) -> Result<(), String> {
@@ -129,6 +146,15 @@ fn handle(request: Request, agent: &Arc<Agent>) {
         None => (url, String::new()),
     };
 
+    let ip = request
+        .remote_addr()
+        .map(|addr| addr.ip())
+        .unwrap_or(IpAddr::from([0u8, 0, 0, 0]));
+    if !agent.limiter.allow(ip) {
+        let _ = request.respond(error(429, "rate limited"));
+        return;
+    }
+
     let header = request
         .headers()
         .iter()
@@ -138,15 +164,6 @@ fn handle(request: Request, agent: &Arc<Agent>) {
     let provided = header.strip_prefix("Bearer ").unwrap_or("");
     if !token_ok(provided, &agent.config.token) {
         let _ = request.respond(error(401, "unauthorized"));
-        return;
-    }
-
-    let ip = request
-        .remote_addr()
-        .map(|addr| addr.ip())
-        .unwrap_or(IpAddr::from([0u8, 0, 0, 0]));
-    if !agent.limiter.allow(ip) {
-        let _ = request.respond(error(429, "rate limited"));
         return;
     }
 

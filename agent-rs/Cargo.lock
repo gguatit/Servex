@@ -1890,7 +1890,7 @@ dependencies = [
 
 [[package]]
 name = "servex-agent"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "servex-core",
  "windows-service",
@@ -1898,7 +1898,7 @@ dependencies = [
 
 [[package]]
 name = "servex-agent-gui"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "eframe",
  "servex-core",
@@ -1907,7 +1907,7 @@ dependencies = [
 
 [[package]]
 name = "servex-core"
-version = "1.2.0"
+version = "1.2.1"
 dependencies = [
  "base64 0.22.1",
  "libc",

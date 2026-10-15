@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-val appVersion = "1.2"
+val appVersion = "1.2.1"
 
 android {
     namespace = "com.example.servex"
@@ -16,7 +16,7 @@ android {
         applicationId = "com.example.servex"
         minSdk = 36
         targetSdk = 37
-        versionCode = 3
+        versionCode = 4
         versionName = appVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

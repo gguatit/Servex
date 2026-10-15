@@ -54,6 +54,12 @@ fun EditServerScreen(viewModel: EditServerViewModel, onBack: () -> Unit) {
             label = { Text(stringResource(R.string.field_url)) },
             modifier = Modifier.fillMaxWidth(), singleLine = true,
         )
+        if (isCleartextRemote(s.baseUrl)) {
+            Text(
+                stringResource(R.string.warn_cleartext),
+                color = ServexColors.warning, style = MaterialTheme.typography.labelSmall,
+            )
+        }
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = s.token, onValueChange = viewModel::onToken,
@@ -94,4 +100,11 @@ fun EditServerScreen(viewModel: EditServerViewModel, onBack: () -> Unit) {
             }
         }
     }
+}
+
+private fun isCleartextRemote(url: String): Boolean {
+    val u = url.trim()
+    if (!u.startsWith("http://")) return false
+    val host = u.removePrefix("http://").substringBefore('/').substringBefore(':')
+    return host != "localhost" && host != "127.0.0.1" && host != "::1"
 }

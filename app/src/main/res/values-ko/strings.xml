@@ -61,6 +61,7 @@
 
     <string name="err_name">이름을 입력하세요</string>
     <string name="err_url">서버 주소를 입력하세요</string>
+    <string name="warn_cleartext">평문 HTTP: 토큰이 암호화 없이 전송됩니다. 신뢰할 수 없는 네트워크에서는 HTTPS를 사용하세요.</string>
 
     <string name="confirm_restart">%1$s 의 서비스를 재시작할까요?</string>
     <string name="about_license">Servex 1.0 - GPL-3.0</string>

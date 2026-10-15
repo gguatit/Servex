@@ -5,13 +5,14 @@ Reference HTTP agent. A single static Rust binary, no runtime dependencies.
 ## Install on Linux (deb)
 
 ```sh
-sudo dpkg -i servex-agent_1.2.0_amd64.deb
+sudo dpkg -i servex-agent_1.2.1_amd64.deb
 ```
 
-The `postinst` script creates `/etc/servex/servex-agent.json` with a random
-token (if it does not already exist), reloads systemd, enables the unit, and
-prints the token. Edit the config if you need a fixed port or token, then
-start the service:
+The `postinst` script creates `/etc/servex/servex-agent.json` (mode 0600) with
+a random token (if it does not already exist), reloads systemd, and enables
+the unit. The token is not printed to the install log; read it with
+`sudo cat /etc/servex/servex-agent.json`. Edit the config if you need a fixed
+port or token, then start the service:
 
 ```sh
 sudo nano /etc/servex/servex-agent.json
@@ -128,7 +129,7 @@ Notes:
 ## Config keys
 
 `bind` (0.0.0.0), `port` (8765), `token`, `sample_interval` (2), `history_size` (150),
-`disk_mounts` (["/"]), `actions` ([]), `tls {cert,key}`, `rate_limit_per_min` (0 = disabled),
+`disk_mounts` (["/"]), `actions` ([]), `tls {cert,key}`, `rate_limit_per_min` (240, 0 = disabled),
 `max_body_bytes` (65536).
 
 ## Security

@@ -61,6 +61,7 @@
 
     <string name="err_name">Enter a name</string>
     <string name="err_url">Enter a server address</string>
+    <string name="warn_cleartext">Plain HTTP: the token is sent unencrypted. Use HTTPS when the network is not trusted.</string>
 
     <string name="confirm_restart">Restart a service on %1$s?</string>
     <string name="about_license">Servex 1.0 - GPL-3.0</string>

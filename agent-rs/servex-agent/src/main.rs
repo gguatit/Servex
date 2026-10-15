@@ -139,7 +139,7 @@ fn run_agent(args: Args) -> ExitCode {
 pub fn serve(config: Config) -> ExitCode {
     let agent = Agent::new(config);
     agent.start_sampler();
-    print_connection_info(&agent.config, true);
+    print_connection_info(&agent.config, false);
     match agent.serve() {
         Ok(()) => ExitCode::SUCCESS,
         Err(message) => {

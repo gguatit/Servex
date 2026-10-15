@@ -76,21 +76,18 @@ POSTINST = """#!/bin/sh
 set -e
 if [ ! -f /etc/servex/servex-agent.json ]; then
   mkdir -p /etc/servex
+  chmod 700 /etc/servex || true
   /usr/bin/servex-agent --init \\
-      --config /etc/servex/servex-agent.json || true
+      --config /etc/servex/servex-agent.json >/dev/null 2>&1 || true
+  chmod 600 /etc/servex/servex-agent.json || true
 fi
 systemctl daemon-reload || true
 systemctl enable servex-agent.service || true
 systemctl start servex-agent.service || true
 echo "Servex agent installed."
 echo "Edit /etc/servex/servex-agent.json, then: systemctl start servex-agent"
-if [ -f /etc/servex/servex-agent.json ]; then
-  token=$(sed -n 's/.*"token": *"\\([^"]*\\)".*/\\1/p' \\
-      /etc/servex/servex-agent.json | head -n 1)
-  if [ -n "$token" ]; then
-    echo "Token: $token"
-  fi
-fi
+echo "The bearer token is in /etc/servex/servex-agent.json (root only):"
+echo "  sudo cat /etc/servex/servex-agent.json"
 exit 0
 """
 
@@ -252,7 +249,7 @@ def build(version, out_dir, binary_path=BINARY_SRC):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Build the Servex agent .deb")
-    parser.add_argument("--version", default="1.2.0")
+    parser.add_argument("--version", default="1.2.1")
     parser.add_argument("--binary", default=BINARY_SRC)
     parser.add_argument("--out", default="dist")
     args = parser.parse_args(argv)

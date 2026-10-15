@@ -44,6 +44,16 @@ pub fn print_connection_info(config: &Config, show_token: bool) {
     if show_token {
         eprintln!("  Token: {}", config.token);
     }
+    if config.tls.cert.is_none() && !is_loopback_bind(&config.bind) {
+        eprintln!(
+            "  warning: plain HTTP on a non-loopback address; the bearer token is sent in cleartext \
+             (use --tls-cert/--tls-key or bind to 127.0.0.1)"
+        );
+    }
+}
+
+fn is_loopback_bind(bind: &str) -> bool {
+    matches!(bind, "127.0.0.1" | "::1" | "localhost")
 }
 
 #[cfg(test)]

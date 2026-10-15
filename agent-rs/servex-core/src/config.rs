@@ -36,7 +36,7 @@ impl Default for Config {
             actions: Vec::new(),
             disk_mounts: vec!["/".into()],
             tls: Tls::default(),
-            rate_limit_per_min: 0,
+            rate_limit_per_min: 240,
             max_body_bytes: 65536,
         }
     }
@@ -85,10 +85,22 @@ impl Config {
         if let Some(dir) = path.parent() {
             if !dir.as_os_str().is_empty() {
                 std::fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700));
+                }
             }
         }
         let text = serde_json::to_string_pretty(self).map_err(|e| e.to_string())?;
-        std::fs::write(path, format!("{text}\n")).map_err(|e| format!("{}: {e}", path.display()))
+        std::fs::write(path, format!("{text}\n")).map_err(|e| format!("{}: {e}", path.display()))?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))
+                .map_err(|e| format!("{}: {e}", path.display()))?;
+        }
+        Ok(())
     }
 
     pub fn init(path: &Path, port: Option<u16>, bind: Option<String>) -> Result<Self, String> {
@@ -159,7 +171,7 @@ mod tests {
         assert_eq!(c.history_size, 150);
         assert!(c.actions.is_empty());
         assert_eq!(c.disk_mounts, vec!["/".to_string()]);
-        assert_eq!(c.rate_limit_per_min, 0);
+        assert_eq!(c.rate_limit_per_min, 240);
         assert_eq!(c.max_body_bytes, 65536);
         assert!(c.tls.cert.is_none());
     }

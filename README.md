@@ -41,8 +41,9 @@ token.
 **Linux (deb):**
 
 ```bash
-sudo dpkg -i servex-agent_1.2.0_amd64.deb
-# creates /etc/servex/servex-agent.json with a random token and prints it
+sudo dpkg -i servex-agent_1.2.1_amd64.deb
+# creates /etc/servex/servex-agent.json (mode 0600) with a random token
+# read it with: sudo cat /etc/servex/servex-agent.json
 sudo systemctl start servex-agent
 ```
 
