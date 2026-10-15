@@ -1,10 +1,10 @@
 # Servex
 
 A dark, minimal Android app for monitoring your own servers, with a small
-zero-dependency Python agent that exposes the metrics over HTTP.
+zero-dependency Rust agent that exposes the metrics over HTTP.
 
 - **App** — Android · Kotlin · Jetpack Compose · MVVM · OkHttp · kotlinx.serialization
-- **Agent** — a single Python 3 file (standard library only)
+- **Agent** — a single static Rust binary (no runtime, no dependencies)
 
 Servex talks directly to your server. There is no cloud service and no account:
 the app connects to an agent you run yourself, using a shared bearer token.
@@ -12,7 +12,7 @@ the app connects to an agent you run yourself, using a shared bearer token.
 ## How it works
 
 ```
-  Servex app (Android)                     servex-agent.py (your server)
+  Servex app (Android)                     servex-agent (your server)
         |                                            |
         |  HTTPS + Bearer token                       |
         |------------------------------------------>|
@@ -29,7 +29,7 @@ offline, and can raise threshold alerts and run allowlisted remote actions.
 
 | Part | Requirement |
 |---|---|
-| Agent | Python 3.8+ (standard library only) on the monitored server |
+| Agent | Linux x86-64 or Windows x64 — no runtime needed |
 | App | Android 15 (API 36) or newer |
 
 ## Run the agent
@@ -41,30 +41,33 @@ token.
 **Linux (deb):**
 
 ```bash
-sudo dpkg -i servex-agent_1.1.0_all.deb
+sudo dpkg -i servex-agent_1.2.0_amd64.deb
 # creates /etc/servex/servex-agent.json with a random token and prints it
 sudo systemctl start servex-agent
 ```
 
-**Windows (exe)** — from an elevated prompt:
+**Windows (exe)** — `servex-agent-gui.exe` for a small window, or
+`servex-agent.exe` for the console and the Windows service. From an elevated
+prompt:
 
 ```powershell
-ServexAgent.exe install
-ServexAgent.exe start
+servex-agent.exe install
+servex-agent.exe start
 # config: C:\ProgramData\Servex\servex-agent.json
 ```
 
-**Plain script (any platform with Python 3.8+):**
+**From source (Cargo):**
 
 ```bash
-cp agent/servex-agent.json.example agent/servex-agent.json
-# edit the token in agent/servex-agent.json
-python3 agent/servex-agent.py --config agent/servex-agent.json
+cargo build --release -p servex-agent
+./target/release/servex-agent --init --config servex-agent.json
+./target/release/servex-agent --config servex-agent.json
 ```
 
 The agent listens on port 8765 by default. See [`docs/AGENT.md`](docs/AGENT.md)
-for configuration, the metrics fields, and install details. Builders live in
-[`packaging/`](packaging/) (`build_deb.py`, `windows/build_exe.py`).
+for configuration, the metrics fields, and install details. The Rust source
+lives in [`agent-rs/`](agent-rs/); [`packaging/build_deb.py`](packaging/)
+builds the deb.
 
 ## Build the app
 

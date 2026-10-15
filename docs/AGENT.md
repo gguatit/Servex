@@ -1,11 +1,11 @@
 # servex-agent
 
-Reference HTTP agent. Python 3.8+, standard library only.
+Reference HTTP agent. A single static Rust binary, no runtime dependencies.
 
 ## Install on Linux (deb)
 
 ```sh
-sudo dpkg -i servex-agent_1.1.0_all.deb
+sudo dpkg -i servex-agent_1.2.0_amd64.deb
 ```
 
 The `postinst` script creates `/etc/servex/servex-agent.json` with a random
@@ -25,53 +25,57 @@ Files installed by the package:
 
 | Path | Purpose |
 |------|---------|
-| `/opt/servex/servex-agent.py` | agent |
+| `/usr/bin/servex-agent` | agent (static binary) |
 | `/etc/servex/servex-agent.json` | config (created by `postinst`) |
 | `/etc/servex/` | config directory |
-| `/usr/bin/servex-agent` | `sh` wrapper for the agent |
 | `/lib/systemd/system/servex-agent.service` | systemd unit |
 
 ## Install on Windows (exe)
 
-Download `ServexAgent.exe` from the releases page. From an **elevated**
-(Administrator) prompt:
+Download `servex-agent.exe` (console + service) and `servex-agent-gui.exe`
+(small window) from the releases page. From an **elevated** (Administrator)
+prompt:
 
 ```powershell
-ServexAgent.exe install
-ServexAgent.exe start
+servex-agent.exe install
+servex-agent.exe start
 ```
 
 The service reads its config from `C:\ProgramData\Servex\servex-agent.json`
-(created with a random token on first start). The service host runs the agent
-in a child process and stops it cleanly. Read the token from that config file,
-or print the connection info up front:
+(created with a random token on install). Read the token from that config
+file, or print the connection info up front:
 
 ```powershell
-ServexAgent.exe --init --config "$env:ProgramData\Servex\servex-agent.json"
+servex-agent.exe --init --config "$env:ProgramData\Servex\servex-agent.json"
 ```
 
 Enter the `http://<ip>:8765` URL and the token into the app. To remove the
 service:
 
 ```powershell
-ServexAgent.exe stop
-ServexAgent.exe remove
+servex-agent.exe stop
+servex-agent.exe remove
 ```
 
 The exe also runs the agent directly (no service) when given normal agent
 flags, for example:
 
 ```powershell
-ServexAgent.exe --init --config "$env:ProgramData\Servex\servex-agent.json"
-ServexAgent.exe --config "$env:ProgramData\Servex\servex-agent.json"
+servex-agent.exe --init --config "$env:ProgramData\Servex\servex-agent.json"
+servex-agent.exe --config "$env:ProgramData\Servex\servex-agent.json"
 ```
+
+`servex-agent-gui.exe` starts the agent and shows the addresses and token with
+copy buttons. It has **Start with Windows** (per-user, no admin needed) and
+**Allow in firewall** buttons, and its close button minimizes it instead of
+stopping the agent.
 
 ## Run from source
 
 ```sh
-cp agent/servex-agent.json.example agent/servex-agent.json
-# edit the token in agent/servex-agent.json
-python3 agent/servex-agent.py --config agent/servex-agent.json
+cargo build --release -p servex-agent
+./target/release/servex-agent --init --config servex-agent.json
+./target/release/servex-agent --config servex-agent.json
 ```
 
 ## API
@@ -124,11 +128,11 @@ Notes:
 ## Config keys
 
 `bind` (0.0.0.0), `port` (8765), `token`, `sample_interval` (2), `history_size` (150),
-`disk_mounts` (["/"]), `actions` ([]), `tls {cert,key}`, `rate_limit_per_min` (240),
+`disk_mounts` (["/"]), `actions` ([]), `tls {cert,key}`, `rate_limit_per_min` (0 = disabled),
 `max_body_bytes` (65536).
 
 ## Security
 
-Token required; `hmac.compare_digest` comparison. Prefer HTTPS (set `tls` or put
+Token required; constant-time comparison. Prefer HTTPS (set `tls` or put
 the agent behind a TLS-terminating reverse proxy). Plain HTTP exposes the token
 on the wire. See `SECURITY.md`.

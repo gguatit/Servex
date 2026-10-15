@@ -1,0 +1,17 @@
+[package]
+name = "servex-agent-gui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+servex-core = { path = "../servex-core" }
+eframe = { version = "0.31", default-features = false, features = ["glow", "default_fonts"] }
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.52"
+
+[[bin]]
+name = "servex-agent-gui"
+path = "src/main.rs"

@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Build dist/servex-agent_<version>_all.deb from the repo (stdlib only).
+"""Build dist/servex-agent_<version>_amd64.deb from the Rust agent binary.
 
 A .deb is an ar archive holding debian-binary, control.tar.gz and
 data.tar.gz. This script writes all three by hand so it works on any
 platform (including Windows) without dpkg/fakeroot.
+
+The Linux binary is produced by cross-compiling on Windows:
+
+    cargo zigbuild --release -p servex-agent \\
+        --target x86_64-unknown-linux-gnu.2.17
 """
 import argparse
 import gzip
@@ -13,8 +18,9 @@ import os
 import tarfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-AGENT_SRC = os.path.join(ROOT, "agent", "servex-agent.py")
-LICENSE_SRC = os.path.join(ROOT, "LICENSE")
+BINARY_SRC = os.path.join(
+    ROOT, "agent-rs", "target", "x86_64-unknown-linux-gnu", "release",
+    "servex-agent")
 ICON_SRC = os.path.join(ROOT, "assets", "icon-256.png")
 
 MAINTAINER = "gguatit <162287131+gguatit@users.noreply.github.com>"
@@ -38,10 +44,6 @@ PrivateTmp=true
 
 [Install]
 WantedBy=multi-user.target
-"""
-
-WRAPPER = """#!/bin/sh
-exec /usr/bin/python3 /opt/servex/servex-agent.py "$@"
 """
 
 DESKTOP = """[Desktop Entry]
@@ -74,7 +76,7 @@ POSTINST = """#!/bin/sh
 set -e
 if [ ! -f /etc/servex/servex-agent.json ]; then
   mkdir -p /etc/servex
-  /usr/bin/python3 /opt/servex/servex-agent.py --init \\
+  /usr/bin/servex-agent --init \\
       --config /etc/servex/servex-agent.json || true
 fi
 systemctl daemon-reload || true
@@ -166,13 +168,11 @@ def _ar(members):
     return bytes(out)
 
 
-def _payload(version):
-    agent = _read(AGENT_SRC)
-    files = [
-        ("opt/servex/servex-agent.py", 0o755, agent),
+def _payload(binary):
+    return [
+        ("usr/bin/servex-agent", 0o755, binary),
         ("lib/systemd/system/servex-agent.service", 0o644,
          SYSTEMD_UNIT.encode("utf-8")),
-        ("usr/bin/servex-agent", 0o755, WRAPPER.encode("utf-8")),
         ("usr/share/doc/servex-agent/copyright", 0o644,
          COPYRIGHT.encode("utf-8")),
         ("usr/share/icons/hicolor/256x256/apps/servex-agent.png", 0o644,
@@ -180,7 +180,6 @@ def _payload(version):
         ("usr/share/applications/servex-agent.desktop", 0o644,
          DESKTOP.encode("utf-8")),
     ]
-    return files
 
 
 def _md5sums(files):
@@ -197,21 +196,25 @@ def _control(version, installed_size):
         "Version: %s\n"
         "Section: admin\n"
         "Priority: optional\n"
-        "Architecture: all\n"
-        "Depends: python3 (>= 3.8)\n"
+        "Architecture: amd64\n"
         "Maintainer: %s\n"
         "Homepage: %s\n"
         "Description: Servex monitoring agent\n"
         " Collects and serves system metrics over HTTP for the Servex app.\n"
-        " Runs a small standard-library-only Python server on port 8765 and\n"
-        " requires a bearer token.\n"
+        " Runs a single static Rust binary on port 8765 and requires a\n"
+        " bearer token.\n"
         "Installed-Size: %d\n"
         "License: GPL-3.0\n" % (version, MAINTAINER, HOMEPAGE, installed_size)
     )
 
 
-def build(version, out_dir):
-    files = _payload(version)
+def build(version, out_dir, binary_path=BINARY_SRC):
+    if not os.path.exists(binary_path):
+        raise SystemExit(
+            "missing Linux binary: %s\n"
+            "build it first: cargo zigbuild --release -p servex-agent "
+            "--target x86_64-unknown-linux-gnu.2.17" % binary_path)
+    files = _payload(_read(binary_path))
     installed_size = (sum(len(d) for _p, _m, d in files) + 1023) // 1024
 
     control_tar = _tar_gz([
@@ -241,7 +244,7 @@ def build(version, out_dir):
     ])
 
     os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, "servex-agent_%s_all.deb" % version)
+    out_path = os.path.join(out_dir, "servex-agent_%s_amd64.deb" % version)
     with open(out_path, "wb") as fh:
         fh.write(deb)
     return out_path
@@ -249,10 +252,11 @@ def build(version, out_dir):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Build the Servex agent .deb")
-    parser.add_argument("--version", default="1.1.0")
+    parser.add_argument("--version", default="1.2.0")
+    parser.add_argument("--binary", default=BINARY_SRC)
     parser.add_argument("--out", default="dist")
     args = parser.parse_args(argv)
-    out_path = build(args.version, args.out)
+    out_path = build(args.version, args.out, args.binary)
     print("wrote %s (%d bytes)" % (out_path, os.path.getsize(out_path)))
     return 0
 

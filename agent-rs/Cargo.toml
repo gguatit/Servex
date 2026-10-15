@@ -1,0 +1,15 @@
+[workspace]
+resolver = "2"
+members = ["servex-core", "servex-agent", "servex-agent-gui"]
+
+[workspace.package]
+version = "1.2.0"
+edition = "2021"
+license = "GPL-3.0-only"
+authors = ["gguatit"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true

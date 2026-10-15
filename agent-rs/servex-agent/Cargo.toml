@@ -1,0 +1,16 @@
+[package]
+name = "servex-agent"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+servex-core = { path = "../servex-core" }
+
+[target.'cfg(windows)'.dependencies]
+windows-service = "0.7"
+
+[[bin]]
+name = "servex-agent"
+path = "src/main.rs"
